@@ -1,0 +1,41 @@
+{% extends "account/_layout.html" %}
+
+{% block title %}{% if is_edit %}Редактировать адрес{% else %}Новый адрес{% endif %} — Quixzet{% endblock %}
+
+{% block account %}
+<a href="{% url 'profile-addresses' %}" class="back-link">{% include "icons/arrow-left.svg" %} все адреса</a>
+
+<header class="acc-section-head">
+    <h1 class="acc-title">{% if is_edit %}редактировать адрес{% else %}новый адрес{% endif %}</h1>
+</header>
+
+<form method="post" class="form-stack form-narrow">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert" role="alert">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+    {% endif %}
+
+    <div class="form-row">
+        {% include "partials/_field.html" with field=form.full_name label="получатель" %}
+        {% include "partials/_field.html" with field=form.phone label="телефон" %}
+    </div>
+    <div class="form-row">
+        {% include "partials/_field.html" with field=form.country label="страна" %}
+        {% include "partials/_field.html" with field=form.city label="город" %}
+    </div>
+    {% include "partials/_field.html" with field=form.street label="улица, дом, квартира" %}
+    {% include "partials/_field.html" with field=form.postal_code label="индекс" %}
+
+    <label class="check">
+        {{ form.is_default }}
+        <span class="check-box" aria-hidden="true">{% include "icons/check.svg" %}</span>
+        <span>сделать основным — подставим при оформлении заказа</span>
+    </label>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-ink btn-lg">сохранить</button>
+        <a href="{% url 'profile-addresses' %}" class="link link-muted">отмена</a>
+    </div>
+</form>
+{% endblock %}

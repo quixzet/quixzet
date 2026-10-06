@@ -1,0 +1,6 @@
+{# Шаги оформления заказа: step = 1, 2 или 3 #}
+<ol class="steps" aria-label="этапы оформления заказа">
+    <li class="{% if step > 1 %}is-done{% elif step == 1 %}is-current{% endif %}"{% if step == 1 %} aria-current="step"{% endif %}><span>01</span> данные</li>
+    <li class="{% if step > 2 %}is-done{% elif step == 2 %}is-current{% endif %}"{% if step == 2 %} aria-current="step"{% endif %}><span>02</span> оплата</li>
+    <li class="{% if step == 3 %}is-current{% endif %}"{% if step == 3 %} aria-current="step"{% endif %}><span>03</span> готово</li>
+</ol>

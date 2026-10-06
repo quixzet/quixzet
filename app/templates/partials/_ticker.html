@@ -1,0 +1,23 @@
+{# Бегущая строка над шапкой. Вторая группа — копия для бесшовной петли #}
+<div class="ticker">
+    <div class="marquee" data-marquee>
+        <div class="marquee-track">
+            <p class="marquee-group">
+                <span>бесплатная доставка</span>{% include "icons/star.svg" %}
+                <span>новая коллекция fw26</span>{% include "icons/star.svg" %}
+                <span>оплата картой, сбп или при получении</span>{% include "icons/star.svg" %}
+                <span>без лишнего. без компромиссов.</span>{% include "icons/star.svg" %}
+            </p>
+            <p class="marquee-group" aria-hidden="true">
+                <span>бесплатная доставка</span>{% include "icons/star.svg" %}
+                <span>новая коллекция fw26</span>{% include "icons/star.svg" %}
+                <span>оплата картой, сбп или при получении</span>{% include "icons/star.svg" %}
+                <span>без лишнего. без компромиссов.</span>{% include "icons/star.svg" %}
+            </p>
+        </div>
+    </div>
+    <button type="button" class="ticker-toggle js-motion-toggle" aria-pressed="false" aria-label="остановить бегущие строки">
+        <span class="when-running">{% include "icons/pause.svg" %}</span>
+        <span class="when-paused">{% include "icons/play.svg" %}</span>
+    </button>
+</div>

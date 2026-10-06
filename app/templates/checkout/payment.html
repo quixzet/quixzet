@@ -1,0 +1,49 @@
+{% extends "app/base.html" %}
+{% load qx %}
+
+{% block title %}Оплата — Quixzet{% endblock %}
+{% block body_class %}page-payment{% endblock %}
+
+{% block content %}
+<header class="page-head">
+    <h1 class="page-title">оплата</h1>
+    {% include "partials/_steps.html" with step=2 %}
+</header>
+
+<div class="receipt-stage">
+    <div class="receipt-wrap">
+        <div class="receipt">
+            <p class="receipt-brand">QUIXZET</p>
+            <p class="receipt-sub">чек к оплате · {{ order.created_at|date:"d.m.Y H:i" }}</p>
+
+            <dl class="receipt-rows">
+                <div><dt>заказ</dt><dd>{{ order.number }}</dd></div>
+                <div><dt>оплата</dt><dd>{{ order.get_payment_method_display|lower }}</dd></div>
+            </dl>
+
+            <ul class="receipt-items" role="list">
+                {% for item in order.items.all %}
+                    <li>
+                        <span>{{ item.product_name|lower }}<small>{{ item.size }} / {{ item.color|lower }} × {{ item.quantity }}</small></span>
+                        <span>{{ item.subtotal|rub }}</span>
+                    </li>
+                {% endfor %}
+                <li><span>доставка</span><span>0&nbsp;₽</span></li>
+            </ul>
+
+            <p class="receipt-total"><span>к оплате</span><strong>{{ order.total|rub }}</strong></p>
+
+            <form method="post" action="{% url 'checkout-pay-confirm' order.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ink btn-xl btn-block">оплатить {{ order.total|rub }}</button>
+            </form>
+
+            <p class="receipt-note">это имитация оплаты. в реальном проекте здесь была бы интеграция с платёжной системой.</p>
+            <div class="barcode" aria-hidden="true"></div>
+            <p class="receipt-code" aria-hidden="true">{{ order.number }}</p>
+        </div>
+    </div>
+
+    <a href="{% url 'cart-detail' %}" class="back-link">{% include "icons/arrow-left.svg" %} вернуться в корзину</a>
+</div>
+{% endblock %}

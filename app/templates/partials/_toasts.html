@@ -1,0 +1,8 @@
+<div class="toasts" role="status" aria-live="polite">
+    {% for message in messages %}
+        <div class="toast{% if message.tags %} is-{{ message.tags }}{% endif %}" data-toast>
+            <span>{{ message }}</span>
+            <button type="button" class="toast-close" aria-label="закрыть уведомление" data-toast-close>{% include "icons/close.svg" %}</button>
+        </div>
+    {% endfor %}
+</div>

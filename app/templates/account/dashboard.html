@@ -1,0 +1,42 @@
+{% extends "account/_layout.html" %}
+{% load qx %}
+
+{% block title %}Профиль — Quixzet{% endblock %}
+
+{% block account %}
+<h1 class="sr-only">профиль</h1>
+
+<div class="stats">
+    <div class="stat">
+        <p class="stat-label">потрачено</p>
+        <p class="stat-value stat-money">{{ spent|rub }}</p>
+    </div>
+    <div class="stat">
+        <p class="stat-label">заказов</p>
+        <p class="stat-value">{{ orders_count|pad:2 }}</p>
+    </div>
+    <div class="stat">
+        <p class="stat-label">вещей куплено</p>
+        <p class="stat-value">{{ items_count|pad:2 }}</p>
+    </div>
+</div>
+
+<section class="acc-section" aria-labelledby="recent-title">
+    <header class="acc-section-head">
+        <h2 class="acc-title" id="recent-title">последние заказы</h2>
+        {% if orders_count > 3 %}
+            <a class="link" href="{% url 'profile-orders' %}">все {{ orders_count }} {% include "icons/arrow-right.svg" %}</a>
+        {% endif %}
+    </header>
+    {% if recent_orders %}
+        {% include "account/_orders_table.html" with orders=recent_orders %}
+    {% else %}
+        <div class="empty-state empty-state-sm">
+            <p class="empty-mark" aria-hidden="true">00</p>
+            <p class="empty-title">у вас пока нет заказов</p>
+            <p class="empty-text">когда что-нибудь закажете — статус будет здесь</p>
+            <a href="{% url 'product-list' %}#catalog" class="btn btn-ink">в каталог {% include "icons/arrow-right.svg" %}</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

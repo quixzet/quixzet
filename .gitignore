@@ -1,0 +1,32 @@
+# ---------- Секреты и локальная база ----------
+.env
+db.sqlite3
+db.sqlite3-journal
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---------- Django ----------
+/staticfiles/
+
+# ---------- Медиа ----------
+# В репозитории — фото товаров, логотипы брендов и сжатые 3D-модели (*-web.glb).
+# Аватарки пользователей и тяжёлые исходники моделей остаются локально.
+/media/avatars/
+/media/products/3d/*.glb
+!/media/products/3d/*-web.glb
+
+# ---------- Инструменты ----------
+.claude/
+CLAUDE.md
+node_modules/
+.idea/
+.vscode/
+
+# ---------- Система ----------
+.DS_Store
+Thumbs.db
+desktop.ini

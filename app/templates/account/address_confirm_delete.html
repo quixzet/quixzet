@@ -1,0 +1,19 @@
+{% extends "account/_layout.html" %}
+
+{% block title %}Удалить адрес — Quixzet{% endblock %}
+
+{% block account %}
+<a href="{% url 'profile-addresses' %}" class="back-link">{% include "icons/arrow-left.svg" %} все адреса</a>
+
+<div class="confirm">
+    <h1 class="acc-title">удалить адрес?</h1>
+    <p class="confirm-text">
+        <strong>{{ object.city }}, {{ object.street }}</strong> — будет удалён без возможности восстановления.
+    </p>
+    <form method="post" class="form-actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg">да, удалить</button>
+        <a href="{% url 'profile-addresses' %}" class="btn btn-line btn-lg">оставить</a>
+    </form>
+</div>
+{% endblock %}

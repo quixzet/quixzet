@@ -1,0 +1,69 @@
+{# Модалки входа и регистрации — нативный <dialog>: фокус, Esc и подложка из коробки #}
+<dialog class="modal" id="modal-login" aria-labelledby="modal-login-title">
+    <form method="dialog" class="modal-close-form">
+        <button class="modal-close" aria-label="закрыть">{% include "icons/close.svg" %}</button>
+    </form>
+    <p class="eyebrow">quixzet / аккаунт</p>
+    <h2 class="modal-title" id="modal-login-title">вход</h2>
+
+    <form class="form-stack" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="field">
+            <label class="field-label" for="m-login-username">логин</label>
+            <input class="input" id="m-login-username" type="text" name="username" autocomplete="username" autocapitalize="none" required>
+        </div>
+        <div class="field">
+            <label class="field-label" for="m-login-password">пароль</label>
+            <div class="input-wrap">
+                <input class="input" id="m-login-password" type="password" name="password" autocomplete="current-password" required>
+                <button type="button" class="input-reveal js-reveal" aria-controls="m-login-password" aria-pressed="false">показать</button>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-ink btn-lg btn-block">войти</button>
+    </form>
+
+    <p class="modal-switch">
+        ещё нет аккаунта?
+        <a href="{% url 'signup' %}" class="link js-open-auth" data-modal="signup">зарегистрироваться</a>
+    </p>
+</dialog>
+
+<dialog class="modal" id="modal-signup" aria-labelledby="modal-signup-title">
+    <form method="dialog" class="modal-close-form">
+        <button class="modal-close" aria-label="закрыть">{% include "icons/close.svg" %}</button>
+    </form>
+    <p class="eyebrow">quixzet / новый аккаунт</p>
+    <h2 class="modal-title" id="modal-signup-title">регистрация</h2>
+
+    <form class="form-stack" method="post" action="{% url 'signup' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="field">
+            <label class="field-label" for="m-signup-username">логин</label>
+            <input class="input" id="m-signup-username" type="text" name="username" autocomplete="username" autocapitalize="none" required>
+        </div>
+        <div class="field">
+            <label class="field-label" for="m-signup-email">почта</label>
+            <input class="input" id="m-signup-email" type="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+            <label class="field-label" for="m-signup-password1">пароль</label>
+            <div class="input-wrap">
+                <input class="input" id="m-signup-password1" type="password" name="password1" autocomplete="new-password" aria-describedby="m-signup-password1-hint" required>
+                <button type="button" class="input-reveal js-reveal" aria-controls="m-signup-password1" aria-pressed="false">показать</button>
+            </div>
+            <p class="field-hint" id="m-signup-password1-hint">минимум 8 символов, не только цифры</p>
+        </div>
+        <div class="field">
+            <label class="field-label" for="m-signup-password2">пароль ещё раз</label>
+            <input class="input" id="m-signup-password2" type="password" name="password2" autocomplete="new-password" required>
+        </div>
+        <button type="submit" class="btn btn-ink btn-lg btn-block">создать аккаунт</button>
+    </form>
+
+    <p class="modal-switch">
+        уже есть аккаунт?
+        <a href="{% url 'login' %}" class="link js-open-auth" data-modal="login">войти</a>
+    </p>
+</dialog>

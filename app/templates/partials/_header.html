@@ -1,0 +1,35 @@
+{% with url_name=request.resolver_match.url_name %}
+<header class="site-header" data-header>
+    <div class="header-inner">
+        <a href="{% url 'product-list' %}" class="logo" aria-label="quixzet — на главную">QUIXZET</a>
+
+        <nav class="header-nav" aria-label="основная навигация">
+            <a href="{% url 'product-list' %}#catalog" class="nav-link nav-catalog{% if url_name == 'product-list' or url_name == 'product-detail' %} is-active{% endif %}">
+                каталог
+            </a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'cart-detail' %}"
+                   class="nav-link{% if url_name == 'cart-detail' or url_name == 'checkout' %} is-active{% endif %}"
+                   aria-label="корзина, вещей: {{ cart_count }}">
+                    {% include "icons/bag.svg" %}
+                    <span class="nav-label">корзина</span>
+                    <span class="nav-count{% if not cart_count %} is-empty{% endif %}">{{ cart_count }}</span>
+                </a>
+                <a href="{% url 'profile' %}"
+                   class="nav-link{% if url_name|slice:':7' == 'profile' %} is-active{% endif %}"
+                   aria-label="профиль">
+                    {% if user.profile.avatar %}
+                        <img class="nav-avatar" src="{{ user.profile.avatar.url }}" alt="" width="24" height="24">
+                    {% else %}
+                        {% include "icons/user.svg" %}
+                    {% endif %}
+                    <span class="nav-label">профиль</span>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-ink btn-sm js-open-auth" data-modal="login">войти</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+{% endwith %}

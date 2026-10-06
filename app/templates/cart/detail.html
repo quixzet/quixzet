@@ -1,0 +1,82 @@
+{% extends "app/base.html" %}
+{% load qx %}
+
+{% block title %}Корзина — Quixzet{% endblock %}
+{% block body_class %}page-cart{% endblock %}
+
+{% block content %}
+<header class="page-head">
+    <h1 class="page-title">корзина<sup class="section-count">({{ cart_count|pad:2 }})</sup></h1>
+    {% if items %}<p class="page-note">{{ cart_count }} {{ cart_count|plural:"вещь,вещи,вещей" }} · доставка бесплатно</p>{% endif %}
+</header>
+
+{% if items %}
+    <div class="split">
+        <div class="split-main">
+            <ul class="lines" role="list">
+                {% for item in items %}
+                    {% with product=item.variant.product %}
+                    <li class="line">
+                        <a class="line-media" href="{% url 'product-detail' product.slug %}" tabindex="-1" aria-hidden="true">
+                            {% with img=product.images.all.0 %}
+                                {% if img %}<img src="{{ img.image.url }}" alt="" loading="lazy">{% else %}<span>фото</span>{% endif %}
+                            {% endwith %}
+                        </a>
+
+                        <div class="line-info">
+                            <h2 class="line-title"><a href="{% url 'product-detail' product.slug %}">{{ product.name }}</a></h2>
+                            <p class="line-meta">{{ item.variant.size }} / {{ item.variant.color|lower }} · {{ item.variant.price|rub }}</p>
+
+                            <div class="line-controls">
+                                <div class="qty" role="group" aria-label="количество: {{ item.quantity }}">
+                                    <form method="post" action="{% url 'cart-update' item.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="op" value="dec">
+                                        <button type="submit" class="qty-btn" aria-label="{% if item.quantity > 1 %}убрать одну{% else %}удалить из корзины{% endif %}">{% include "icons/minus.svg" %}</button>
+                                    </form>
+                                    <span class="qty-value">{{ item.quantity }}</span>
+                                    <form method="post" action="{% url 'cart-update' item.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="op" value="inc">
+                                        <button type="submit" class="qty-btn" aria-label="добавить ещё одну"{% if item.quantity >= item.variant.stock %} disabled{% endif %}>{% include "icons/plus.svg" %}</button>
+                                    </form>
+                                </div>
+
+                                <form method="post" action="{% url 'cart-remove' item.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="link link-muted">удалить</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <p class="line-total">{{ item.subtotal|rub }}</p>
+                    </li>
+                    {% endwith %}
+                {% endfor %}
+            </ul>
+
+            <a href="{% url 'product-list' %}#catalog" class="back-link">{% include "icons/arrow-left.svg" %} продолжить покупки</a>
+        </div>
+
+        <aside class="split-aside">
+            <div class="summary">
+                <h2 class="summary-title">итого</h2>
+                <dl class="summary-rows">
+                    <div><dt>вещи ({{ cart_count }})</dt><dd>{{ total|rub }}</dd></div>
+                    <div><dt>доставка</dt><dd>бесплатно</dd></div>
+                </dl>
+                <p class="summary-total"><span>к оплате</span><strong>{{ total|rub }}</strong></p>
+                <a href="{% url 'checkout' %}" class="btn btn-paper btn-xl btn-block">оформить заказ {% include "icons/arrow-right.svg" %}</a>
+                <p class="summary-note">картой, через сбп или при получении — выберете на следующем шаге</p>
+            </div>
+        </aside>
+    </div>
+{% else %}
+    <div class="empty-state">
+        <p class="empty-mark" aria-hidden="true">пусто</p>
+        <h2 class="empty-title">в корзине ничего нет</h2>
+        <p class="empty-text">добавьте что-нибудь из каталога — и оно появится здесь</p>
+        <a href="{% url 'product-list' %}#catalog" class="btn btn-ink btn-lg">в каталог {% include "icons/arrow-right.svg" %}</a>
+    </div>
+{% endif %}
+{% endblock %}

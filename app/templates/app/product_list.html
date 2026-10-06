@@ -1,0 +1,156 @@
+{% extends "app/base.html" %}
+{% load static qx %}
+
+{% block title %}Quixzet — новая коллекция fw26{% endblock %}
+{% block body_class %}page-home{% endblock %}
+
+{% block extra_head %}
+    <link rel="preload" as="image" href="{% static 'images/banner-m.webp' %}" type="image/webp" media="(max-width: 700px)">
+    <link rel="preload" as="image" imagesrcset="{% static 'images/banner-1200.webp' %} 1200w, {% static 'images/banner.webp' %} 1942w" imagesizes="100vw" type="image/webp" media="(min-width: 701px)">
+{% endblock %}
+
+{% block content %}
+{# ---------- HERO ---------- #}
+<section class="hero" aria-labelledby="hero-title">
+    <picture class="hero-media">
+        <source media="(max-width: 700px)" srcset="{% static 'images/banner-m.webp' %}" type="image/webp">
+        <source srcset="{% static 'images/banner-1200.webp' %} 1200w, {% static 'images/banner.webp' %} 1942w" sizes="100vw" type="image/webp">
+        <img src="{% static 'images/banner.jpg' %}" width="1942" height="809" fetchpriority="high"
+             alt="модель в чёрном пуховике и широких карго-брюках на светлом фоне">
+    </picture>
+
+    <div class="hero-content">
+        <p class="hero-kicker"><span class="live-dot" aria-hidden="true"></span>fw26 — осень / зима</p>
+        <h1 class="hero-title" id="hero-title">
+            <span class="reveal-line"><span>новая</span></span>
+            <span class="reveal-line"><span>коллекция</span></span>
+        </h1>
+        <div class="hero-foot">
+            <p class="hero-sub">без лишнего.<br>без компромиссов.</p>
+            <a href="#catalog" class="btn btn-ink btn-lg hero-cta">смотреть {% include "icons/arrow-down.svg" %}</a>
+        </div>
+    </div>
+</section>
+
+{# ---------- ЛЕНТЫ ---------- #}
+<div class="tapes" aria-hidden="true">
+    <div class="tape tape-a marquee" data-marquee>
+        <div class="marquee-track">
+            <p class="marquee-group">
+                <span>без лишнего</span>{% include "icons/star.svg" %}
+                <span>без компромиссов</span>{% include "icons/star.svg" %}
+                <span>quixzet fw26</span>{% include "icons/star.svg" %}
+            </p>
+            <p class="marquee-group">
+                <span>без лишнего</span>{% include "icons/star.svg" %}
+                <span>без компромиссов</span>{% include "icons/star.svg" %}
+                <span>quixzet fw26</span>{% include "icons/star.svg" %}
+            </p>
+        </div>
+    </div>
+    <div class="tape tape-b marquee is-reverse" data-marquee>
+        <div class="marquee-track">
+            <p class="marquee-group">
+                <span>новая коллекция</span>{% include "icons/star.svg" %}
+                <span>бесплатная доставка</span>{% include "icons/star.svg" %}
+                <span>оплата при получении</span>{% include "icons/star.svg" %}
+            </p>
+            <p class="marquee-group">
+                <span>новая коллекция</span>{% include "icons/star.svg" %}
+                <span>бесплатная доставка</span>{% include "icons/star.svg" %}
+                <span>оплата при получении</span>{% include "icons/star.svg" %}
+            </p>
+        </div>
+    </div>
+</div>
+
+{# ---------- КАТАЛОГ ---------- #}
+<section class="catalog" id="catalog" aria-labelledby="catalog-title">
+    <header class="section-head">
+        <h2 class="section-title" id="catalog-title">
+            каталог<sup class="section-count">({{ paginator.count|pad:2 }})</sup>
+        </h2>
+        {% if filters %}
+            <div class="filters" role="group" aria-label="фильтры каталога">
+                {% for group in filters %}
+                    <div class="filter-group">
+                        <span class="filter-label">{{ group.label }}</span>
+                        <ul class="chips" role="list">
+                            {% for chip in group.chips %}
+                                <li>
+                                    <a class="chip{% if chip.active %} is-active{% endif %}" href="{{ chip.url }}#catalog"{% if chip.active %} aria-current="true"{% endif %}>{{ chip.label }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </header>
+
+    <div class="grid">
+        {% with offset=page_obj.start_index|add:"-1" %}
+            {% for product in products %}
+                {% include "partials/_product_card.html" with index=forloop.counter|add:offset %}
+            {% empty %}
+                <div class="grid-empty">
+                    <p class="grid-empty-mark" aria-hidden="true">пусто</p>
+                    {% if is_filtered %}
+                        <p>по этим фильтрам ничего нет</p>
+                        <a class="btn btn-ink" href="{% url 'product-list' %}#catalog">сбросить фильтры</a>
+                    {% else %}
+                        <p>товаров пока нет — загляните позже</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        {% if products and not page_obj.has_next %}
+            <div class="grid-end" style="--n: {{ products|length }}" data-reveal>
+                <p class="grid-end-title">это всё.<br>пока.</p>
+                <button type="button" class="link js-to-top">наверх {% include "icons/arrow-up.svg" %}</button>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if is_paginated %}
+        <nav class="pager" aria-label="страницы каталога">
+            {% if page_obj.has_previous %}
+                <a class="pager-step" href="?{% if query_base %}{{ query_base }}&{% endif %}page={{ page_obj.previous_page_number }}#catalog" aria-label="предыдущая страница">{% include "icons/arrow-left.svg" %}</a>
+            {% endif %}
+            {% for n in paginator.page_range %}
+                {% if n == page_obj.number %}
+                    <span class="pager-num is-current" aria-current="page">{{ n|pad:2 }}</span>
+                {% else %}
+                    <a class="pager-num" href="?{% if query_base %}{{ query_base }}&{% endif %}page={{ n }}#catalog">{{ n|pad:2 }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a class="pager-step" href="?{% if query_base %}{{ query_base }}&{% endif %}page={{ page_obj.next_page_number }}#catalog" aria-label="следующая страница">{% include "icons/arrow-right.svg" %}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</section>
+
+{# ---------- СЕРВИС ---------- #}
+<section class="service" aria-labelledby="service-title">
+    <p class="eyebrow service-eyebrow" id="service-title">[ как это работает ]</p>
+    <ol class="service-list" role="list">
+        <li class="service-row">
+            <span class="service-num">01</span>
+            <span class="service-word">доставка</span>
+            <span class="service-desc">бесплатно —<br>адрес подставим из профиля</span>
+        </li>
+        <li class="service-row">
+            <span class="service-num">02</span>
+            <span class="service-word">оплата</span>
+            <span class="service-desc">картой, через сбп<br>или при получении</span>
+        </li>
+        <li class="service-row">
+            <span class="service-num">03</span>
+            <span class="service-word">заказы</span>
+            <span class="service-desc">статус и история —<br>в личном кабинете</span>
+        </li>
+    </ol>
+</section>
+{% endblock %}

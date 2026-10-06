@@ -1,0 +1,12 @@
+{% extends "app/base.html" %}
+
+{% block title %}Не найдено — Quixzet{% endblock %}
+
+{% block content %}
+<div class="empty-state">
+    <p class="empty-mark" aria-hidden="true">404</p>
+    <h1 class="empty-title">тут ничего нет</h1>
+    <p class="empty-text">возможно, товар закончился или ссылка устарела</p>
+    <a href="{% url 'product-list' %}#catalog" class="btn btn-ink btn-lg">в каталог {% include "icons/arrow-right.svg" %}</a>
+</div>
+{% endblock %}

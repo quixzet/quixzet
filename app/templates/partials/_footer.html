@@ -1,0 +1,45 @@
+<footer class="site-footer">
+    <div class="footer-top">
+        <div class="footer-col footer-brand">
+            <p class="eyebrow">quixzet / fw26</p>
+            <p class="footer-claim">без лишнего.<br>без компромиссов.</p>
+        </div>
+
+        <nav class="footer-col" aria-label="навигация в подвале">
+            <p class="eyebrow">магазин</p>
+            <ul class="footer-links" role="list">
+                <li><a href="{% url 'product-list' %}#catalog">каталог</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'cart-detail' %}">корзина</a></li>
+                    <li><a href="{% url 'profile-orders' %}">мои заказы</a></li>
+                    <li><a href="{% url 'profile' %}">профиль</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" class="js-open-auth" data-modal="login">войти</a></li>
+                    <li><a href="{% url 'signup' %}" class="js-open-auth" data-modal="signup">регистрация</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <div class="footer-col">
+            <p class="eyebrow">сервис</p>
+            <ul class="footer-facts" role="list">
+                <li><span>доставка</span> бесплатно</li>
+                <li><span>оплата</span> карта, сбп, при получении</li>
+                <li><span>заказы</span> статус — в профиле</li>
+            </ul>
+        </div>
+
+        <div class="footer-col footer-time">
+            <p class="eyebrow">москва</p>
+            <p class="clock" data-clock>{% now "H:i" %}</p>
+            <button type="button" class="link js-to-top">наверх {% include "icons/arrow-up.svg" %}</button>
+        </div>
+    </div>
+
+    <p class="footer-mark" aria-hidden="true">QUIXZET</p>
+
+    <div class="footer-bottom">
+        <span>© {% now "Y" %} quixzet</span>
+        <span>без лишнего. без компромиссов.</span>
+    </div>
+</footer>

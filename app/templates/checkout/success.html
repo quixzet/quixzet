@@ -1,0 +1,27 @@
+{% extends "app/base.html" %}
+
+{% block title %}Заказ оформлен — Quixzet{% endblock %}
+{% block body_class %}page-success{% endblock %}
+
+{% block content %}
+<header class="page-head">
+    <p class="eyebrow">спасибо за заказ</p>
+    {% include "partials/_steps.html" with step=3 %}
+</header>
+
+<section class="done">
+    <svg class="done-check" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <path d="M12 34 L26 47 L52 18" pathLength="1"/>
+    </svg>
+    <h1 class="done-title">
+        <span class="reveal-line"><span>заказ</span></span>
+        <span class="reveal-line"><span>оформлен</span></span>
+    </h1>
+    <p class="done-number">{{ order.number }}</p>
+    <p class="done-text">мы свяжемся с вами для уточнения деталей доставки.</p>
+    <div class="done-actions">
+        <a class="btn btn-ink btn-lg" href="{% url 'profile-order-detail' order.pk %}">статус заказа {% include "icons/arrow-right.svg" %}</a>
+        <a class="btn btn-line btn-lg" href="{% url 'product-list' %}#catalog">в каталог</a>
+    </div>
+</section>
+{% endblock %}

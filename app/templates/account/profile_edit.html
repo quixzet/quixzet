@@ -1,0 +1,57 @@
+{% extends "account/_layout.html" %}
+
+{% block title %}Данные профиля — Quixzet{% endblock %}
+
+{% block account %}
+<header class="acc-section-head">
+    <h1 class="acc-title">данные</h1>
+</header>
+
+<form method="post" enctype="multipart/form-data" class="form-stack form-narrow">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert" role="alert">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+    {% endif %}
+
+    <fieldset class="form-block">
+        <legend class="form-block-title"><span>01</span> аватар</legend>
+        <div class="avatar-edit">
+            <div class="avatar-preview" data-avatar-preview>
+                {% if form.instance.avatar %}
+                    <img src="{{ form.instance.avatar.url }}" alt="текущий аватар">
+                {% else %}
+                    <span>{{ user.username|slice:":1"|upper }}</span>
+                {% endif %}
+            </div>
+            <div class="avatar-actions">
+                <div class="file-pick">
+                    <input type="file" name="avatar" id="id_avatar" accept="image/*" data-avatar-input>
+                    <label for="id_avatar" class="btn btn-ink btn-sm">загрузить фото</label>
+                    <span class="file-name" data-avatar-name>файл не выбран</span>
+                </div>
+                {% if form.instance.avatar %}
+                    <label class="check check-sm">
+                        <input type="checkbox" name="avatar-clear" id="avatar-clear_id">
+                        <span class="check-box" aria-hidden="true">{% include "icons/check.svg" %}</span>
+                        <span>удалить текущее фото</span>
+                    </label>
+                {% endif %}
+                <p class="field-hint">jpg или png. квадратное фото смотрится лучше всего</p>
+                {% for error in form.avatar.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="form-block">
+        <legend class="form-block-title"><span>02</span> информация</legend>
+        {% include "partials/_field.html" with field=form.phone label="телефон" hint="подставим при оформлении заказа" %}
+        {% include "partials/_field.html" with field=form.bio label="о себе" hint="до 300 символов" %}
+    </fieldset>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-ink btn-lg">сохранить</button>
+        <a href="{% url 'profile' %}" class="link link-muted">отмена</a>
+    </div>
+</form>
+{% endblock %}

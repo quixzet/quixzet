@@ -1,0 +1,68 @@
+{% extends "account/_layout.html" %}
+{% load qx %}
+
+{% block title %}Заказ {{ order.number }} — Quixzet{% endblock %}
+
+{% block account %}
+<a href="{% url 'profile-orders' %}" class="back-link">{% include "icons/arrow-left.svg" %} все заказы</a>
+
+<header class="od-head">
+    <div>
+        <p class="eyebrow">заказ от {{ order.created_at|date:"d.m.Y, H:i" }}</p>
+        <h1 class="od-number">{{ order.number }}</h1>
+    </div>
+    <span class="status status-lg status-{{ order.status }}">{{ order.get_status_display|lower }}</span>
+</header>
+
+{% order_steps order as steps %}
+{% if steps %}
+    <ol class="track" aria-label="статус доставки">
+        {% for s in steps %}
+            <li class="{% if s.done %}is-done{% endif %}{% if s.current %} is-current{% endif %}"{% if s.current %} aria-current="step"{% endif %}>
+                <span class="track-dot" aria-hidden="true"></span>
+                <span class="track-label">{{ s.label }}</span>
+            </li>
+        {% endfor %}
+    </ol>
+{% endif %}
+
+<div class="od-grid">
+    <section aria-labelledby="od-items-title">
+        <h2 class="acc-title-sm" id="od-items-title">состав</h2>
+        <ul class="lines lines-compact" role="list">
+            {% for item in order.items.all %}
+                {% with product=item.variant.product %}
+                <li class="line">
+                    <a class="line-media" href="{% url 'product-detail' product.slug %}" tabindex="-1" aria-hidden="true">
+                        {% with img=product.images.all.0 %}
+                            {% if img %}<img src="{{ img.image.url }}" alt="" loading="lazy">{% else %}<span>фото</span>{% endif %}
+                        {% endwith %}
+                    </a>
+                    <div class="line-info">
+                        <h3 class="line-title"><a href="{% url 'product-detail' product.slug %}">{{ item.product_name }}</a></h3>
+                        <p class="line-meta">{{ item.size }} / {{ item.color|lower }} · {{ item.price|rub }} × {{ item.quantity }}</p>
+                    </div>
+                    <p class="line-total">{{ item.subtotal|rub }}</p>
+                </li>
+                {% endwith %}
+            {% endfor %}
+        </ul>
+    </section>
+
+    <aside class="receipt receipt-flat" aria-labelledby="od-delivery-title">
+        <h2 class="receipt-head" id="od-delivery-title">доставка</h2>
+        <dl class="receipt-rows">
+            <div><dt>получатель</dt><dd>{{ order.full_name }}</dd></div>
+            <div><dt>телефон</dt><dd>{{ order.phone }}</dd></div>
+            <div><dt>адрес</dt><dd>{{ order.address }}</dd></div>
+            {% if order.comment %}<div><dt>комментарий</dt><dd>{{ order.comment }}</dd></div>{% endif %}
+            <div><dt>оплата</dt><dd>{{ order.get_payment_method_display|lower }}</dd></div>
+            <div><dt>доставка</dt><dd>бесплатно</dd></div>
+        </dl>
+        <p class="receipt-total"><span>итого</span><strong>{{ order.total|rub }}</strong></p>
+        {% if order.status == "awaiting_payment" %}
+            <a class="btn btn-ink btn-lg btn-block" href="{% url 'checkout-payment' order.id %}">оплатить {% include "icons/arrow-right.svg" %}</a>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

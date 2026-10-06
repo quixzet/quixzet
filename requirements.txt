@@ -1,0 +1,10 @@
+Django==6.1.1
+django-environ==0.14.0
+Pillow==12.3.0
+
+# PostgreSQL — нужен, если DATABASE_URL указывает на postgres
+psycopg[binary]==3.3.6
+
+# Redis — под будущий кэш и Celery (в settings.py пока выключено)
+django-redis==7.0.0
+redis==8.1.0

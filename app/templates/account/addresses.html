@@ -1,0 +1,33 @@
+{% extends "account/_layout.html" %}
+
+{% block title %}Адреса — Quixzet{% endblock %}
+
+{% block account %}
+<header class="acc-section-head">
+    <h1 class="acc-title">мои адреса</h1>
+</header>
+
+<div class="addr-grid">
+    {% for address in addresses %}
+        <article class="addr{% if address.is_default %} is-default{% endif %}">
+            {% if address.is_default %}<span class="tag tag-paper">основной</span>{% endif %}
+            <h2 class="addr-name">{{ address.full_name }}</h2>
+            <p class="addr-text">{{ address.city }}, {{ address.street }}<br>{{ address.postal_code }}, {{ address.country|lower }}</p>
+            <p class="addr-phone">{{ address.phone }}</p>
+            <div class="addr-actions">
+                <a class="link" href="{% url 'profile-address-edit' address.pk %}">изменить</a>
+                <a class="link link-muted" href="{% url 'profile-address-delete' address.pk %}">удалить</a>
+            </div>
+        </article>
+    {% endfor %}
+
+    <a class="addr addr-new" href="{% url 'profile-address-create' %}">
+        <span class="addr-plus" aria-hidden="true">{% include "icons/plus.svg" %}</span>
+        <span>добавить адрес</span>
+    </a>
+</div>
+
+{% if not addresses %}
+    <p class="acc-hint">сохраните адрес — при оформлении заказа он подставится сам</p>
+{% endif %}
+{% endblock %}

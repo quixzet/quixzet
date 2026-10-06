@@ -1,0 +1,222 @@
+{% extends "app/base.html" %}
+{% load static qx %}
+
+{% block title %}{{ product.name }} — Quixzet{% endblock %}
+{% block description %}{{ product.name }}{% if product.brand %} от {{ product.brand.name }}{% endif %} — в quixzet. без лишнего. без компромиссов.{% endblock %}
+{% block body_class %}page-product{% endblock %}
+
+{% block extra_head %}
+    {% if product.model_3d %}
+        {# Просмотрщик 3D грузится только у товаров с моделью. Декодер meshopt — свой, без CDN #}
+        <script>self.ModelViewerElement = { meshoptDecoderLocation: "{% static 'js/vendor/meshopt_decoder.js' %}" };</script>
+        <script type="module" src="{% static 'js/vendor/model-viewer.min.js' %}"></script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<nav class="crumbs" aria-label="навигационная цепочка">
+    <a href="{% url 'product-list' %}#catalog">каталог</a>
+    {% if product.category.parent %}
+        <span aria-hidden="true">/</span>
+        <a href="{% url 'product-list' %}?category={{ product.category.parent.slug }}#catalog">{{ product.category.parent.name|lower }}</a>
+    {% endif %}
+    <span aria-hidden="true">/</span>
+    <a href="{% url 'product-list' %}?category={{ product.category.slug }}#catalog">{{ product.category.name|lower }}</a>
+</nav>
+
+<article class="pdp">
+    {# ---------- Галерея: один кадр, листается стрелками, клавишами ← → и свайпом ---------- #}
+    <div class="pdp-gallery" data-slider role="region" aria-roledescription="карусель" aria-label="фото товара">
+        <div class="slider-track" data-slider-track>
+            {% if product.model_3d %}
+                {# Живая модель — первым кадром. Зум выключен, чтобы колесо листало страницу #}
+                <figure class="slide slide-3d" data-cursor="крути" aria-roledescription="слайд" aria-label="3d-модель">
+                    <model-viewer class="mv" data-mv
+                        src="{{ product.model_3d.url }}" alt="3D-модель: {{ product.name }}"
+                        camera-controls disable-zoom touch-action="pan-y" interaction-prompt="none"
+                        auto-rotate auto-rotate-delay="2000" rotation-per-second="18deg"
+                        camera-orbit="-25deg 78deg auto"
+                        min-camera-orbit="auto 35deg auto" max-camera-orbit="auto 100deg auto"
+                        environment-image="neutral" exposure="1.05"
+                        shadow-intensity="1" shadow-softness="0.9">
+                        <span class="mv-progress" slot="progress-bar"><span></span></span>
+                    </model-viewer>
+                    <figcaption class="mv-ui">
+                        <span class="mv-badge"><span class="live-dot" aria-hidden="true"></span>3d · тяни, чтобы крутить</span>
+                        <button type="button" class="mv-expand" data-open-dialog="viewer-3d">на весь экран</button>
+                    </figcaption>
+                </figure>
+            {% endif %}
+            {% for image in images %}
+                <figure class="slide" aria-roledescription="слайд" aria-label="фото {{ forloop.counter }} из {{ images|length }}">
+                    <img src="{{ image.image.url }}" alt="{{ image.alt|default:product.name }}" draggable="false"
+                         {% if forloop.first and not product.model_3d %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
+                </figure>
+            {% empty %}
+                {% if not product.model_3d %}
+                    <figure class="slide is-empty"><span>фото скоро</span></figure>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if slides_count > 1 %}
+            <button type="button" class="slider-btn slider-prev" data-slider-prev aria-label="предыдущий кадр">{% include "icons/arrow-left.svg" %}</button>
+            <button type="button" class="slider-btn slider-next" data-slider-next aria-label="следующий кадр">{% include "icons/arrow-right.svg" %}</button>
+            <p class="slider-count" aria-live="polite"><span data-slider-current>01</span> / {{ slides_count|pad:2 }}</p>
+        {% endif %}
+    </div>
+
+    {# ---------- Инфо и покупка ---------- #}
+    <div class="pdp-info">
+        <div class="pdp-sticky">
+            <p class="pdp-brand">
+                {% if product.brand %}<span>{{ product.brand.name|lower }}</span>{% endif %}
+                <span>{{ product.get_gender_display|lower }}</span>
+                <span>{{ product.category.name|lower }}</span>
+            </p>
+            <h1 class="pdp-title">{{ product.name }}</h1>
+
+            {% with v=selected_variant|default:variants.0 %}
+                <div class="pdp-price">
+                    <span class="price-now" data-price-now>{% if v %}{{ v.price|rub }}{% else %}нет в продаже{% endif %}</span>
+                    <s class="price-old" data-price-old{% if not v.old_price or v.old_price <= v.price %} hidden{% endif %}><span class="sr-only">было </span><span data-price-old-value>{{ v.old_price|rub }}</span></s>
+                    <span class="tag tag-signal" data-price-off{% if not v.old_price or v.old_price <= v.price %} hidden{% endif %}>−<span data-price-off-value>{{ v.price|discount:v.old_price }}</span>%</span>
+                </div>
+            {% endwith %}
+
+            <form method="post" action="{% url 'cart-add-selected' %}" class="pdp-form" id="pdp-form" data-size-form>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+                {% if variants %}
+                    <fieldset class="sizes">
+                        <legend class="sizes-legend">
+                            размер{% if colors|length == 1 %} <span>· цвет: {{ colors.0|lower }}</span>{% endif %}
+                        </legend>
+                        <div class="sizes-grid">
+                            {% for v in variants %}
+                                <label class="size{% if not v.stock %} is-out{% endif %}">
+                                    <input type="radio" name="variant" value="{{ v.id }}" required
+                                           {% if not v.stock %}disabled{% endif %}
+                                           {% if v == selected_variant %}checked{% endif %}
+                                           data-price="{{ v.price|rub }}"
+                                           data-old="{% if v.old_price and v.old_price > v.price %}{{ v.old_price|rub }}{% endif %}"
+                                           data-off="{{ v.price|discount:v.old_price }}"
+                                           data-stock="{{ v.stock }}"
+                                           data-sku="{{ v.sku }}">
+                                    <span class="size-label">
+                                        {{ v.size }}
+                                        {% if colors|length > 1 %}<small>{{ v.color|lower }}</small>{% endif %}
+                                        {% if not v.stock %}<span class="sr-only">— нет в наличии</span>{% endif %}
+                                    </span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                {% endif %}
+
+                <p class="pdp-stock" data-stock-note aria-live="polite">
+                    {% if selected_variant %}
+                        <span class="live-dot" aria-hidden="true"></span>
+                        <span>в наличии: <span data-stock-value>{{ selected_variant.stock }}</span> шт.</span>
+                    {% else %}
+                        <span>нет в наличии</span>
+                    {% endif %}
+                </p>
+
+                {% if user.is_authenticated %}
+                    <button type="submit" class="btn btn-ink btn-xl btn-block pdp-buy" data-buy-main {% if not selected_variant %}disabled{% endif %}>
+                        <span>в корзину</span>
+                        {% if selected_variant %}<span class="btn-price" data-price-btn>{{ selected_variant.price|rub }}</span>{% endif %}
+                    </button>
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="btn btn-ink btn-xl btn-block pdp-buy js-open-auth" data-modal="login" data-buy-main>
+                        войти и купить
+                    </a>
+                {% endif %}
+            </form>
+
+            <div class="fold">
+                {% if product.description %}
+                    <details open>
+                        <summary>описание</summary>
+                        <div class="fold-body">{{ product.description|linebreaks }}</div>
+                    </details>
+                {% endif %}
+                <details>
+                    <summary>доставка и оплата</summary>
+                    <div class="fold-body">
+                        <p>доставка — бесплатно.</p>
+                        <p>оплата — банковской картой, через сбп или при получении.</p>
+                    </div>
+                </details>
+                {% if variants %}
+                    <details>
+                        <summary>артикул</summary>
+                        <div class="fold-body fold-mono" data-sku-value>{{ selected_variant.sku|default:variants.0.sku }}</div>
+                    </details>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</article>
+
+{% if related %}
+    <section class="related" aria-labelledby="related-title">
+        <header class="section-head">
+            <h2 class="section-title section-title-sm" id="related-title">смотри также</h2>
+        </header>
+        <div class="grid">
+            {% for product in related %}
+                {% include "partials/_product_card.html" with index=forloop.counter %}
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+
+{% if product.model_3d %}
+    {# Полноэкранный просмотр: зум, AR на телефоне. Модель берётся из кэша, второй раз не качается #}
+    <dialog class="viewer" id="viewer-3d" aria-labelledby="viewer-3d-title">
+        <model-viewer class="mv" data-mv
+            src="{{ product.model_3d.url }}" alt="3D-модель: {{ product.name }}"
+            camera-controls touch-action="none" interaction-prompt="auto"
+            auto-rotate auto-rotate-delay="3000" rotation-per-second="18deg"
+            camera-orbit="-25deg 78deg auto"
+            min-camera-orbit="auto 20deg auto" max-camera-orbit="auto 110deg auto"
+            environment-image="neutral" exposure="1.05"
+            shadow-intensity="1" shadow-softness="0.9"
+            ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor">
+            <button type="button" class="btn btn-ink btn-lg mv-ar" slot="ar-button">смотреть в комнате · ar</button>
+            <span class="mv-progress" slot="progress-bar"><span></span></span>
+        </model-viewer>
+        <div class="viewer-top">
+            <div>
+                <p class="viewer-kicker">3d-модель</p>
+                <h2 class="viewer-title" id="viewer-3d-title">{{ product.name }}</h2>
+            </div>
+            <form method="dialog">
+                <button class="modal-close" aria-label="закрыть 3d-просмотр">{% include "icons/close.svg" %}</button>
+            </form>
+        </div>
+        <p class="viewer-hint">
+            <span class="hint-mouse">тяни — крутить · колесо — зум</span>
+            <span class="hint-touch">веди пальцем — крутить · щипок — зум</span>
+        </p>
+    </dialog>
+{% endif %}
+
+{# Мобильная панель покупки — появляется, когда основная кнопка ушла с экрана #}
+{% if selected_variant or not user.is_authenticated %}
+    <div class="buybar" data-buybar>
+        <div class="buybar-info">
+            <span class="buybar-name">{{ product.name }}</span>
+            <span class="buybar-price" data-price-bar>{% if selected_variant %}{{ selected_variant.price|rub }}{% endif %}</span>
+        </div>
+        {% if user.is_authenticated %}
+            <button type="submit" form="pdp-form" class="btn btn-ink">в корзину</button>
+        {% else %}
+            <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="btn btn-ink js-open-auth" data-modal="login">войти</a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

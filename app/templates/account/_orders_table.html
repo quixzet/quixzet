@@ -1,0 +1,15 @@
+{% load qx %}
+<ul class="orders" role="list">
+    {% for order in orders %}
+        <li>
+            <a class="order-row" href="{% url 'profile-order-detail' order.pk %}">
+                <span class="order-no">{{ order.number }}</span>
+                <span class="order-date">{{ order.created_at|date:"d.m.Y" }}</span>
+                <span class="order-qty">{% with n=order.items.all|sumattr:"quantity" %}{{ n }} {{ n|plural:"вещь,вещи,вещей" }}{% endwith %}</span>
+                <span class="order-status"><span class="status status-{{ order.status }}">{{ order.get_status_display|lower }}</span></span>
+                <span class="order-total">{{ order.total|rub }}</span>
+                <span class="order-go">{% include "icons/arrow-right.svg" %}</span>
+            </a>
+        </li>
+    {% endfor %}
+</ul>

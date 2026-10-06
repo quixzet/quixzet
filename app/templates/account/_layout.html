@@ -1,0 +1,37 @@
+{% extends "app/base.html" %}
+{# Общий каркас кабинета: шапка профиля + вкладки. Страницы заполняют блок account #}
+
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+{% with url_name=request.resolver_match.url_name %}
+<header class="acc-head">
+    <div class="acc-id">
+        <div class="acc-avatar">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="">
+            {% else %}
+                <span>{{ user.username|slice:":1"|upper }}</span>
+            {% endif %}
+        </div>
+        <div class="acc-who">
+            <p class="eyebrow">профиль · с нами с {{ user.date_joined|date:"d.m.Y" }}</p>
+            <p class="acc-name">{{ user.username }}</p>
+            <p class="acc-mail">{{ user.email|default:"почта не указана" }}</p>
+        </div>
+    </div>
+    <a href="{% url 'logout' %}" class="btn btn-line btn-sm acc-logout">выйти</a>
+</header>
+
+<nav class="tabs" aria-label="разделы профиля">
+    <a href="{% url 'profile' %}" class="tab{% if url_name == 'profile' %} is-active{% endif %}"{% if url_name == 'profile' %} aria-current="page"{% endif %}>обзор</a>
+    <a href="{% url 'profile-orders' %}" class="tab{% if url_name == 'profile-orders' or url_name == 'profile-order-detail' %} is-active{% endif %}"{% if url_name == 'profile-orders' %} aria-current="page"{% endif %}>заказы</a>
+    <a href="{% url 'profile-addresses' %}" class="tab{% if url_name == 'profile-addresses' or url_name == 'profile-address-create' or url_name == 'profile-address-edit' or url_name == 'profile-address-delete' %} is-active{% endif %}"{% if url_name == 'profile-addresses' %} aria-current="page"{% endif %}>адреса</a>
+    <a href="{% url 'profile-edit' %}" class="tab{% if url_name == 'profile-edit' %} is-active{% endif %}"{% if url_name == 'profile-edit' %} aria-current="page"{% endif %}>данные</a>
+</nav>
+
+<div class="acc-body">
+    {% block account %}{% endblock %}
+</div>
+{% endwith %}
+{% endblock %}

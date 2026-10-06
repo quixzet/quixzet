@@ -1,0 +1,77 @@
+{% extends "app/base.html" %}
+{% load qx %}
+
+{% block title %}Оформление заказа — Quixzet{% endblock %}
+{% block body_class %}page-checkout{% endblock %}
+
+{% block content %}
+<header class="page-head">
+    <h1 class="page-title">оформление</h1>
+    {% include "partials/_steps.html" with step=1 %}
+</header>
+
+<div class="split">
+    <div class="split-main split-pad">
+        <form method="post" class="form-stack checkout-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert" role="alert">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+            {% endif %}
+
+            <fieldset class="form-block">
+                <legend class="form-block-title"><span>01</span> получатель</legend>
+                <div class="form-row">
+                    {% include "partials/_field.html" with field=form.full_name label="имя и фамилия" %}
+                    {% include "partials/_field.html" with field=form.phone label="телефон" %}
+                </div>
+                {% include "partials/_field.html" with field=form.address label="адрес доставки" hint="город, улица, дом, квартира, индекс" %}
+                {% include "partials/_field.html" with field=form.comment label="комментарий курьеру" %}
+            </fieldset>
+
+            <fieldset class="form-block">
+                <legend class="form-block-title"><span>02</span> способ оплаты</legend>
+                <div class="choices">
+                    {% for radio in form.payment_method %}
+                        <label class="choice" for="{{ radio.id_for_label }}">
+                            {{ radio.tag }}
+                            <span class="choice-dot" aria-hidden="true"></span>
+                            <span class="choice-label">{{ radio.choice_label|lower }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {% for error in form.payment_method.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+            </fieldset>
+
+            <button type="submit" class="btn btn-ink btn-xl checkout-submit">
+                перейти к оплате {% include "icons/arrow-right.svg" %}
+            </button>
+        </form>
+    </div>
+
+    <aside class="split-aside">
+        <div class="summary">
+            <h2 class="summary-title">ваш заказ</h2>
+            <ul class="mini-lines" role="list">
+                {% for item in items %}
+                    <li class="mini-line">
+                        <span class="mini-media">
+                            {% with img=item.variant.product.images.all.0 %}{% if img %}<img src="{{ img.image.url }}" alt="" loading="lazy">{% endif %}{% endwith %}
+                            <b>{{ item.quantity }}</b>
+                        </span>
+                        <span class="mini-name">
+                            {{ item.variant.product.name }}
+                            <small>{{ item.variant.size }} / {{ item.variant.color|lower }}</small>
+                        </span>
+                        <span class="mini-price">{{ item.subtotal|rub }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <dl class="summary-rows">
+                <div><dt>доставка</dt><dd>бесплатно</dd></div>
+            </dl>
+            <p class="summary-total"><span>итого</span><strong>{{ total|rub }}</strong></p>
+        </div>
+    </aside>
+</div>
+{% endblock %}

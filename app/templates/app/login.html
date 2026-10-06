@@ -1,0 +1,39 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}Вход — Quixzet{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+{% block auth_modals %}{% endblock %}
+
+{% block content %}
+<div class="auth">
+    <div class="auth-visual" aria-hidden="true">
+        <img src="{% static 'images/banner-m.webp' %}" alt="" width="647" height="809">
+        <p class="auth-visual-text">без лишнего.<br>без компромиссов.</p>
+    </div>
+
+    <div class="auth-panel">
+        <p class="eyebrow">quixzet / аккаунт</p>
+        <h1 class="auth-title">вход</h1>
+
+        {% if form.errors %}
+            <div class="alert" role="alert">
+                <p>неверный логин или пароль. проверьте раскладку и регистр.</p>
+            </div>
+        {% endif %}
+
+        <form method="post" class="form-stack">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% include "partials/_field.html" with field=form.username label="логин" %}
+            {% include "partials/_field.html" with field=form.password label="пароль" password=True %}
+            <button type="submit" class="btn btn-ink btn-xl btn-block">войти</button>
+        </form>
+
+        <p class="auth-switch">
+            ещё нет аккаунта?
+            <a class="link" href="{% url 'signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">зарегистрироваться</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

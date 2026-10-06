@@ -1,0 +1,16 @@
+{# Поле формы: подпись сверху, ошибка и подсказка под полем. Параметры: field, label, hint, password #}
+<div class="field{% if field.errors %} has-error{% endif %}">
+    <label class="field-label" for="{{ field.id_for_label }}">
+        {{ label|default:field.label|lower }}{% if field.field.required %}<span class="req" aria-hidden="true">*</span>{% endif %}
+    </label>
+    {% if password %}
+        <div class="input-wrap">
+            {{ field }}
+            <button type="button" class="input-reveal js-reveal" aria-controls="{{ field.id_for_label }}" aria-pressed="false">показать</button>
+        </div>
+    {% else %}
+        {{ field }}
+    {% endif %}
+    {% if hint %}<p class="field-hint">{{ hint }}</p>{% endif %}
+    {% for error in field.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+</div>

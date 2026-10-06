@@ -1,0 +1,39 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}Регистрация — Quixzet{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+{% block auth_modals %}{% endblock %}
+
+{% block content %}
+<div class="auth">
+    <div class="auth-visual" aria-hidden="true">
+        <img src="{% static 'images/banner-m.webp' %}" alt="" width="647" height="809">
+        <p class="auth-visual-text">без лишнего.<br>без компромиссов.</p>
+    </div>
+
+    <div class="auth-panel">
+        <p class="eyebrow">quixzet / новый аккаунт</p>
+        <h1 class="auth-title">регистрация</h1>
+
+        {% if form.non_field_errors %}
+            <div class="alert" role="alert">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+        {% endif %}
+
+        <form method="post" class="form-stack">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% include "partials/_field.html" with field=form.username label="логин" %}
+            {% include "partials/_field.html" with field=form.email label="почта" %}
+            {% include "partials/_field.html" with field=form.password1 label="пароль" password=True hint="минимум 8 символов, не только цифры" %}
+            {% include "partials/_field.html" with field=form.password2 label="пароль ещё раз" %}
+            <button type="submit" class="btn btn-ink btn-xl btn-block">создать аккаунт</button>
+        </form>
+
+        <p class="auth-switch">
+            уже есть аккаунт?
+            <a class="link" href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">войти</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
