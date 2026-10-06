@@ -8,3 +8,7 @@ psycopg[binary]==3.3.6
 # Redis — под будущий кэш и Celery (в settings.py пока выключено)
 django-redis==7.0.0
 redis==8.1.0
+
+# Продакшен: веб-сервер и раздача статики
+gunicorn>=23.0
+whitenoise>=6.9

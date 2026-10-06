@@ -60,3 +60,20 @@ app/
 project/                              настройки Django
 media/                                фото товаров и 3D-модели
 ```
+
+## Деплой (Render + Cloudflare)
+
+Cloudflare Pages умеет только статику, Django там не запустится. Поэтому сайт работает на [Render](https://render.com), а Cloudflare держит домен и CDN.
+
+1. Render → **New → Blueprint** → репозиторий `quixzet/quixzet`. Render прочитает `render.yaml` и создаст веб-сервис и PostgreSQL. Дальше каждый `git push` в `main` деплоится сам.
+2. Админ: в Render → сервис → **Shell** → `python manage.py createsuperuser`.
+3. Перенести товары из локальной SQLite:
+   ```powershell
+   python manage.py dumpdata app.Category app.Brand app.Product app.ProductVariant app.ProductImage --indent 2 -o catalog.json
+   ```
+   закоммитить `catalog.json`, затем в Shell на Render: `python manage.py loaddata catalog.json`.
+4. Свой домен: Render → Settings → **Custom Domains** → добавить `quixzet.ru`. В Cloudflare DNS создать `CNAME` на `quixzet.onrender.com`, SSL/TLS режим **Full**. В Render добавить переменные `ALLOWED_HOSTS=quixzet.ru` и `CSRF_TRUSTED_ORIGINS=https://quixzet.ru`.
+
+Сборка — `build.sh` (зависимости, `collectstatic`, `migrate`), запуск — `gunicorn`. Статику раздаёт WhiteNoise.
+
+На бесплатном тарифе Render диск не сохраняется между деплоями: картинки из репозитория (`media/`) на месте, а загруженные через админку пропадут при следующем деплое. Для постоянных загрузок нужен платный диск Render или Cloudflare R2.
