@@ -1,0 +1,325 @@
+[
+{
+  "model": "app.category",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-04T19:54:19.483Z",
+    "updated_at": "2026-10-04T19:54:19.483Z",
+    "name": "Мужское",
+    "slug": "muzhskoe",
+    "parent": null,
+    "is_active": true
+  }
+},
+{
+  "model": "app.category",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-04T19:55:36.043Z",
+    "updated_at": "2026-10-04T19:55:36.043Z",
+    "name": "Куртки",
+    "slug": "kurtki",
+    "parent": 2,
+    "is_active": true
+  }
+},
+{
+  "model": "app.category",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-06T10:54:33.149Z",
+    "updated_at": "2026-10-06T10:54:33.149Z",
+    "name": "Джинсы",
+    "slug": "dzhinsy",
+    "parent": 2,
+    "is_active": true
+  }
+},
+{
+  "model": "app.brand",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-04T19:56:46.031Z",
+    "updated_at": "2026-10-04T19:56:46.031Z",
+    "name": "Tommy Hilfiger",
+    "slug": "tommy-hilfiger",
+    "logo": "brands/vecteezy_tommy-hilfiger-logo-red-and-blue-symbol-with-name-clothes_10994243.jpg"
+  }
+},
+{
+  "model": "app.brand",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-06T10:36:16.442Z",
+    "updated_at": "2026-10-06T10:36:16.442Z",
+    "name": "Dolce & Gabbana",
+    "slug": "dolce-gabbana",
+    "logo": "brands/Dolce__Gabbana-no-bg-preview_carve.photos.png"
+  }
+},
+{
+  "model": "app.brand",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-06T10:54:19.562Z",
+    "updated_at": "2026-10-06T10:54:19.562Z",
+    "name": "Balenciaga",
+    "slug": "balenciaga",
+    "logo": ""
+  }
+},
+{
+  "model": "app.product",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-04T19:57:32.383Z",
+    "updated_at": "2026-10-04T20:00:26.997Z",
+    "name": "Куртка Tommy Hilfiger oversize чёрная",
+    "slug": "kurtka-tommy-hilfiger-oversize-chyornaya",
+    "description": "материал, крой, что носить. 2–5 предложений.",
+    "category": 3,
+    "brand": 2,
+    "gender": "men",
+    "model_3d": "products/3d/tommy-jacket-web.glb",
+    "is_active": true
+  }
+},
+{
+  "model": "app.product",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.056Z",
+    "updated_at": "2026-10-06T10:50:43.949Z",
+    "name": "Кожаный бомбер Dolce & Gabbana бордовый",
+    "slug": "kozhanyj-bomber-dolce-gabbana-bordovyj",
+    "description": "Кожаный бомбер с воротником и трикотажной резинкой по низу. Тёплый оттенок бордо, глубокий цвет, мягкая кожа. Накладные карманы с молниями, металлическая фурнитура. Подходит для повседневных образов и осенней погоды.",
+    "category": 3,
+    "brand": 3,
+    "gender": "men",
+    "model_3d": "",
+    "is_active": true
+  }
+},
+{
+  "model": "app.product",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-06T10:56:48.934Z",
+    "updated_at": "2026-10-06T10:56:48.934Z",
+    "name": "Джинсы Balenciaga Patched Pockets Baggy Jeans",
+    "slug": "dzhinsy-balenciaga-patched-pockets-baggy-jeans",
+    "description": "Джинсы Balenciaga Patched Pockets Baggy Jeans с элементами дистресса и эффектом загрязнения. Состав: 100% хлопок. Страна производства: Италия. Модель: 751111TDW143359. Свободный крой baggy, декоративные потёртости, накладные карманы.",
+    "category": 4,
+    "brand": 4,
+    "gender": "men",
+    "model_3d": "",
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 1,
+  "fields": {
+    "created_at": "2026-10-04T20:00:26.999Z",
+    "updated_at": "2026-10-04T20:00:26.999Z",
+    "product": 2,
+    "sku": "TH-KURT-BLK-S",
+    "size": "S",
+    "color": "чёрный",
+    "price": "29990.00",
+    "old_price": "34990.00",
+    "stock": 5,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-04T20:00:27.000Z",
+    "updated_at": "2026-10-04T20:00:27.000Z",
+    "product": 2,
+    "sku": "TH-KURT-BLK-M",
+    "size": "M",
+    "color": "чёрный",
+    "price": "29990.00",
+    "old_price": "34990.00",
+    "stock": 8,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.059Z",
+    "updated_at": "2026-10-06T10:39:44.059Z",
+    "product": 3,
+    "sku": "DG-BOMB-BORD-S",
+    "size": "S",
+    "color": "Бордовый",
+    "price": "129990.00",
+    "old_price": "159990.00",
+    "stock": 2,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.060Z",
+    "updated_at": "2026-10-06T10:39:44.060Z",
+    "product": 3,
+    "sku": "DG-BOMB-BORD-M",
+    "size": "M",
+    "color": "Бордовый",
+    "price": "129990.00",
+    "old_price": "159990.00",
+    "stock": 4,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 5,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.060Z",
+    "updated_at": "2026-10-06T10:39:44.060Z",
+    "product": 3,
+    "sku": "DG-BOMB-BORD-L",
+    "size": "L",
+    "color": "Бордовый",
+    "price": "129990.00",
+    "old_price": "159990.00",
+    "stock": 3,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 6,
+  "fields": {
+    "created_at": "2026-10-06T10:56:48.937Z",
+    "updated_at": "2026-10-06T10:56:48.937Z",
+    "product": 4,
+    "sku": "BAL-DJINS-GB-S",
+    "size": "S",
+    "color": "грязно-голубой",
+    "price": "64750.00",
+    "old_price": "129500.00",
+    "stock": 2,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 7,
+  "fields": {
+    "created_at": "2026-10-06T10:56:48.937Z",
+    "updated_at": "2026-10-06T10:56:48.937Z",
+    "product": 4,
+    "sku": "BAL-DJINS-GB-M",
+    "size": "M",
+    "color": "грязно-голубой",
+    "price": "64750.00",
+    "old_price": "129500.00",
+    "stock": 5,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productvariant",
+  "pk": 8,
+  "fields": {
+    "created_at": "2026-10-06T10:56:48.938Z",
+    "updated_at": "2026-10-06T10:56:48.938Z",
+    "product": 4,
+    "sku": "BAL-DJINS-GB-L",
+    "size": "L",
+    "color": "грязно-голубой",
+    "price": "64750.00",
+    "old_price": "129500.00",
+    "stock": 1,
+    "is_active": true
+  }
+},
+{
+  "model": "app.productimage",
+  "pk": 1,
+  "fields": {
+    "created_at": "2026-10-04T20:00:27.003Z",
+    "updated_at": "2026-10-04T20:00:27.003Z",
+    "product": 2,
+    "image": "products/2026/10/TH.jpg",
+    "alt": "Куртка Tommy Hilfiger чёрная, вид спереди",
+    "is_main": true,
+    "position": 0
+  }
+},
+{
+  "model": "app.productimage",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.061Z",
+    "updated_at": "2026-10-06T10:39:44.061Z",
+    "product": 3,
+    "image": "products/2026/10/dolce.jpg",
+    "alt": "Кожаный бомбер Dolce & Gabbana бордовый, вид спереди",
+    "is_main": true,
+    "position": 0
+  }
+},
+{
+  "model": "app.productimage",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.063Z",
+    "updated_at": "2026-10-06T10:39:44.063Z",
+    "product": 3,
+    "image": "products/2026/10/4.jpg",
+    "alt": "Кожаный бомбер Dolce & Gabbana, вид сзади",
+    "is_main": false,
+    "position": 1
+  }
+},
+{
+  "model": "app.productimage",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-06T10:39:44.064Z",
+    "updated_at": "2026-10-06T10:50:43.952Z",
+    "product": 3,
+    "image": "products/2026/10/2.jpg",
+    "alt": "Детали бомбера: молния, воротник, карман",
+    "is_main": false,
+    "position": 2
+  }
+},
+{
+  "model": "app.productimage",
+  "pk": 5,
+  "fields": {
+    "created_at": "2026-10-06T10:56:48.939Z",
+    "updated_at": "2026-10-06T10:56:48.939Z",
+    "product": 4,
+    "image": "products/2026/10/jeans1.jpeg",
+    "alt": "Джинсы Balenciaga Patched Pockets, вид спереди",
+    "is_main": true,
+    "position": 0
+  }
+},
+{
+  "model": "app.productimage",
+  "pk": 6,
+  "fields": {
+    "created_at": "2026-10-06T10:56:48.940Z",
+    "updated_at": "2026-10-06T10:56:48.940Z",
+    "product": 4,
+    "image": "products/2026/10/jeans2.jpeg",
+    "alt": "Джинсы Balenciaga, вид сзади",
+    "is_main": false,
+    "position": 1
+  }
+}
+]
