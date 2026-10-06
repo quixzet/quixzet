@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py *)",
+      "Bash(pip install *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(python *)",
+      "Bash(pip *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(cp *)",
+      "Read(./**)",
+      "Edit(./**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)"
+    ]
+  }
+}
