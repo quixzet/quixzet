@@ -4,14 +4,6 @@
 {% block description %}{{ product.name }}{% if product.brand %} от {{ product.brand.name }}{% endif %} — в quixzet. без лишнего. без компромиссов.{% endblock %}
 {% block body_class %}page-product{% endblock %}
 
-{% block extra_head %}
-    {% if product.model_3d %}
-
-        <script>self.ModelViewerElement = { meshoptDecoderLocation: "/assets/js/vendor/meshopt_decoder.js" };</script>
-        <script type="module" src="/assets/js/vendor/model-viewer.min.js"></script>
-    {% endif %}
-{% endblock %}
-
 {% block content %}
 <nav class="crumbs" aria-label="навигационная цепочка">
     <a href="{{ url("product-list") }}#catalog">каталог</a>
@@ -27,37 +19,20 @@
 
     <div class="pdp-gallery" data-slider role="region" aria-roledescription="карусель" aria-label="фото товара">
         <div class="slider-track" data-slider-track>
-            {% if product.model_3d %}
-
-                <figure class="slide slide-3d" data-cursor="крути" aria-roledescription="слайд" aria-label="3d-модель">
-                    <model-viewer class="mv" data-mv
-                        src="{{ product.model_3d.url }}" alt="3D-модель: {{ product.name }}"
-                        camera-controls disable-zoom touch-action="pan-y" interaction-prompt="none"
-                        auto-rotate auto-rotate-delay="2000" rotation-per-second="18deg"
-                        camera-orbit="-25deg 78deg auto"
-                        min-camera-orbit="auto 35deg auto" max-camera-orbit="auto 100deg auto"
-                        environment-image="neutral" exposure="1.05"
-                        shadow-intensity="1" shadow-softness="0.9">
-                        <span class="mv-progress" slot="progress-bar"><span></span></span>
-                    </model-viewer>
-                    <figcaption class="mv-ui">
-                        <span class="mv-badge"><span class="live-dot" aria-hidden="true"></span>3d · тяни, чтобы крутить</span>
-                        <button type="button" class="mv-expand" data-open-dialog="viewer-3d">на весь экран</button>
-                    </figcaption>
-                </figure>
-            {% endif %}
             {% for image in images %}
                 <figure class="slide" aria-roledescription="слайд" aria-label="фото {{ loop.index }} из {{ images|length }}">
                     <img src="{{ image.image.url }}" alt="{{ image.alt|default(product.name, true) }}" draggable="false"
-                         {% if loop.first and not product.model_3d %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
+                         {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
                 </figure>
             {% else %}
-                {% if not product.model_3d %}
-                    <figure class="slide is-empty"><span>фото скоро</span></figure>
-                {% endif %}
+                <figure class="slide is-empty"><span>фото скоро</span></figure>
             {% endfor %}
         </div>
 
+        {% if product.model_3d %}
+            <button type="button" class="mv-expand" data-open-dialog="viewer-3d">смотреть в 3d</button>
+        {% endif %}
+        {% set slides_count = images|length %}
         {% if slides_count > 1 %}
             <button type="button" class="slider-btn slider-prev" data-slider-prev aria-label="предыдущий кадр">{% include "icons/arrow-left.svg" %}</button>
             <button type="button" class="slider-btn slider-next" data-slider-next aria-label="следующий кадр">{% include "icons/arrow-right.svg" %}</button>
@@ -174,9 +149,8 @@
 
     <dialog class="viewer" id="viewer-3d" aria-labelledby="viewer-3d-title">
         <model-viewer class="mv" data-mv
-            src="{{ product.model_3d.url }}" alt="3D-модель: {{ product.name }}"
+            data-src="{{ product.model_3d.url }}" alt="3D-модель: {{ product.name }}"
             camera-controls touch-action="none" interaction-prompt="auto"
-            auto-rotate auto-rotate-delay="3000" rotation-per-second="18deg"
             camera-orbit="-25deg 78deg auto"
             min-camera-orbit="auto 20deg auto" max-camera-orbit="auto 110deg auto"
             environment-image="neutral" exposure="1.05"
@@ -185,6 +159,7 @@
             <button type="button" class="btn btn-ink btn-lg mv-ar" slot="ar-button">смотреть в комнате · ar</button>
             <span class="mv-progress" slot="progress-bar"><span></span></span>
         </model-viewer>
+        <p class="viewer-status" data-model-status role="status">загрузка 3d-модели…</p>
         <div class="viewer-top">
             <div>
                 <p class="viewer-kicker">3d-модель</p>

@@ -21,6 +21,7 @@
                 e.preventDefault();
                 document.querySelectorAll('dialog[open]').forEach(function (d) { d.close(); });
                 dialog.showModal();
+                if (dialog.classList.contains('viewer')) loadModel(dialog);
                 return;
             }
 
@@ -73,6 +74,14 @@
         }
 
         marquees.forEach(fill);
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    entry.target.classList.toggle('is-offscreen', !entry.isIntersecting);
+                });
+            });
+            marquees.forEach(function (marquee) { observer.observe(marquee); });
+        }
         let timer = 0;
         window.addEventListener('resize', function () {
             clearTimeout(timer);
@@ -115,7 +124,7 @@
             entries.forEach(function (entry) {
                 if (!entry.isIntersecting) return;
 
-                entry.target.style.setProperty('--reveal-delay', (i++ * 70) + 'ms');
+                entry.target.style.setProperty('--reveal-delay', (Math.min(i++, 4) * 40) + 'ms');
                 entry.target.classList.add('is-visible');
                 observer.unobserve(entry.target);
             });
@@ -188,7 +197,6 @@
         root.querySelector('[data-slider-next]').addEventListener('click', function () { go(index + 1); });
 
         root.addEventListener('keydown', function (e) {
-            if (e.target.closest('model-viewer')) return;
             if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
             if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
         });
@@ -196,7 +204,7 @@
         let startX = null;
         let startY = 0;
         track.addEventListener('pointerdown', function (e) {
-            startX = e.target.closest('model-viewer, button') ? null : e.clientX;
+            startX = e.target.closest('button') ? null : e.clientX;
             startY = e.clientY;
         });
         track.addEventListener('pointerup', function (e) {
@@ -208,27 +216,31 @@
         });
         track.addEventListener('pointercancel', function () { startX = null; });
 
-        function preload() {
-            root.querySelectorAll('img[loading="lazy"]').forEach(function (img) { img.loading = 'eager'; });
-        }
-        if (document.readyState === 'complete') preload();
-        else window.addEventListener('load', preload);
-
         go(0);
     }
 
 
-    function initModelViewers() {
-        document.querySelectorAll('[data-mv]').forEach(function (mv) {
-            if (reduceMotion.matches) mv.removeAttribute('auto-rotate');
-            const bar = mv.querySelector('.mv-progress');
-            if (!bar) return;
-            mv.addEventListener('progress', function (e) {
-                const p = e.detail.totalProgress;
-                bar.style.setProperty('--p', p);
-                bar.classList.toggle('is-done', p >= 1);
-            });
+    async function loadModel(dialog) {
+        const model = dialog.querySelector('[data-mv]');
+        if (model.hasAttribute('src')) return;
+
+        const status = dialog.querySelector('[data-model-status]');
+        const bar = model.querySelector('.mv-progress');
+        model.addEventListener('progress', function (event) {
+            const progress = event.detail.totalProgress;
+            bar.style.setProperty('--p', progress);
+            bar.classList.toggle('is-done', progress >= 1);
         });
+        model.addEventListener('load', function () { status.hidden = true; }, { once: true });
+        const showError = function () { status.textContent = 'не удалось загрузить 3d-модель'; };
+        model.addEventListener('error', showError, { once: true });
+        window.ModelViewerElement = { meshoptDecoderLocation: '/assets/js/vendor/meshopt_decoder.js' };
+        model.setAttribute('src', model.dataset.src);
+        try {
+            await import('/assets/js/vendor/model-viewer.min.js');
+        } catch {
+            showError();
+        }
     }
 
 
@@ -324,21 +336,32 @@
         }
 
         document.addEventListener('pointermove', function (e) {
-            tx = e.clientX;
-            ty = e.clientY;
             const target = e.target.closest('[data-cursor]');
+            if (!target) {
+                if (active) resetCursor();
+                return;
+            }
             if (target !== active) {
                 active = target;
-                if (target) label.textContent = target.dataset.cursor;
-                tag.classList.toggle('is-on', Boolean(target));
+                label.textContent = target.dataset.cursor;
+                tag.classList.add('is-on');
             }
-            if (!raf) raf = requestAnimationFrame(loop);
+            tx = e.clientX;
+            ty = e.clientY;
+            if (!raf) {
+                if (x === -200 && y === -200) { x = tx; y = ty; }
+                raf = requestAnimationFrame(loop);
+            }
         }, { passive: true });
 
-        root.addEventListener('mouseleave', function () {
+        function resetCursor() {
+            cancelAnimationFrame(raf);
+            raf = 0;
+            x = y = -200;
             active = null;
             tag.classList.remove('is-on');
-        });
+        }
+        root.addEventListener('mouseleave', resetCursor);
     }
 
 
@@ -350,7 +373,6 @@
     initToTop();
     initSizePicker();
     initSlider();
-    initModelViewers();
     initBuybar();
     initAvatarPreview();
     initToasts();
