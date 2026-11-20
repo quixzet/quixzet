@@ -5,6 +5,8 @@
 {% block body_class %}page-product{% endblock %}
 
 {% block content %}
+{% set images = product.images %}
+{% set priced_variant = selected_variant or variants[0] %}
 <nav class="crumbs" aria-label="навигационная цепочка">
     <a href="{{ url("product-list") }}#catalog">каталог</a>
     {% if product.category.parent %}
@@ -49,11 +51,11 @@
             </p>
             <h1 class="pdp-title">{{ product.name }}</h1>
 
-                <div class="pdp-price">
-                    <span class="price-now" data-price-now>{% if v %}{{ v.price|rub }}{% else %}нет в продаже{% endif %}</span>
-                    <s class="price-old" data-price-old{% if not v.old_price or v.old_price|number <= v.price|number %} hidden{% endif %}><span class="sr-only">было </span><span data-price-old-value>{{ v.old_price|rub }}</span></s>
-                    <span class="tag tag-signal" data-price-off{% if not v.old_price or v.old_price|number <= v.price|number %} hidden{% endif %}>−<span data-price-off-value>{{ v.price|discount(v.old_price) }}</span>%</span>
-                </div>
+            <div class="pdp-price">
+                <span class="price-now" data-price-now>{% if priced_variant %}{{ priced_variant.price|rub }}{% else %}нет в продаже{% endif %}</span>
+                <s class="price-old" data-price-old{% if not priced_variant.old_price or priced_variant.old_price|number <= priced_variant.price|number %} hidden{% endif %}><span class="sr-only">было </span><span data-price-old-value>{{ priced_variant.old_price|rub }}</span></s>
+                <span class="tag tag-signal" data-price-off{% if not priced_variant.old_price or priced_variant.old_price|number <= priced_variant.price|number %} hidden{% endif %}>−<span data-price-off-value>{{ priced_variant.price|discount(priced_variant.old_price) }}</span>%</span>
+            </div>
 
             <form method="post" action="{{ url("cart-add-selected") }}" class="pdp-form" id="pdp-form" data-size-form>
                 {% include "partials/_csrf.html" %}
@@ -124,7 +126,7 @@
                 {% if variants|length %}
                     <details>
                         <summary>артикул</summary>
-                        <div class="fold-body fold-mono" data-sku-value>{{ selected_variant.sku|default(variants[0].sku, true) }}</div>
+                        <div class="fold-body fold-mono" data-sku-value>{{ priced_variant.sku }}</div>
                     </details>
                 {% endif %}
             </div>
