@@ -1,0 +1,17 @@
+{% set input = formFields[route][field] %}
+{% set errors = form.errors[field] %}
+<div class="field{% if errors|length %} has-error{% endif %}">
+    <label class="field-label" for="id_{{ field }}">
+        {{ label }}{% if input.required %}<span class="req" aria-hidden="true">*</span>{% endif %}
+    </label>
+    {% if password %}
+        <div class="input-wrap">
+            {% include "partials/_input.html" %}
+            <button type="button" class="input-reveal js-reveal" aria-controls="id_{{ field }}" aria-pressed="false">показать</button>
+        </div>
+    {% else %}
+        {% include "partials/_input.html" %}
+    {% endif %}
+    {% if hint %}<p class="field-hint">{{ hint }}</p>{% endif %}
+    {% for error in errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+</div>

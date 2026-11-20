@@ -1,0 +1,76 @@
+{% extends "app/base.html" %}
+
+{% block title %}Оформление заказа — Quixzet{% endblock %}
+{% block body_class %}page-checkout{% endblock %}
+
+{% block content %}
+<header class="page-head">
+    <h1 class="page-title">оформление</h1>
+    {% for locals in [{step: 1}] %}{% set step = locals.step %}{% include "partials/_steps.html" %}{% endfor %}
+</header>
+
+<div class="split">
+    <div class="split-main split-pad">
+        <form method="post" class="form-stack checkout-form">
+            {% include "partials/_csrf.html" %}
+
+            {% if form.errors.__all__|length %}
+                <div class="alert" role="alert">{% for error in form.errors.__all__ %}<p>{{ error }}</p>{% endfor %}</div>
+            {% endif %}
+
+            <fieldset class="form-block">
+                <legend class="form-block-title"><span>01</span> получатель</legend>
+                <div class="form-row">
+                    {% for locals in [{field: "full_name", label: "имя и фамилия"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+                    {% for locals in [{field: "phone", label: "телефон"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+                </div>
+                {% for locals in [{field: "address", label: "адрес доставки", hint: "город, улица, дом, квартира, индекс"}] %}{% set field = locals.field %}{% set label = locals.label %}{% set hint = locals.hint %}{% include "partials/_field.html" %}{% endfor %}
+                {% for locals in [{field: "comment", label: "комментарий курьеру"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+            </fieldset>
+
+            <fieldset class="form-block">
+                <legend class="form-block-title"><span>02</span> способ оплаты</legend>
+                <div class="choices">
+                    {% for method in payment_methods %}
+                        <label class="choice" for="payment-{{ method[0] }}">
+                            <input class="radio" type="radio" name="payment_method" id="payment-{{ method[0] }}" value="{{ method[0] }}" required{% if form.values.payment_method == method[0] %} checked{% endif %}>
+                            <span class="choice-dot" aria-hidden="true"></span>
+                            <span class="choice-label">{{ method[1]|lower }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {% for error in form.errors.payment_method %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+            </fieldset>
+
+            <button type="submit" class="btn btn-ink btn-xl checkout-submit">
+                перейти к оплате {% include "icons/arrow-right.svg" %}
+            </button>
+        </form>
+    </div>
+
+    <aside class="split-aside">
+        <div class="summary">
+            <h2 class="summary-title">ваш заказ</h2>
+            <ul class="mini-lines" role="list">
+                {% for item in items %}
+                    <li class="mini-line">
+                        <span class="mini-media">
+                            {% set img = item.variant.product.images[0] %}{% if img %}<img src="{{ img.image.url }}" alt="" loading="lazy">{% endif %}
+                            <b>{{ item.quantity }}</b>
+                        </span>
+                        <span class="mini-name">
+                            {{ item.variant.product.name }}
+                            <small>{{ item.variant.size }} / {{ item.variant.color|lower }}</small>
+                        </span>
+                        <span class="mini-price">{{ item.subtotal|rub }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <dl class="summary-rows">
+                <div><dt>доставка</dt><dd>бесплатно</dd></div>
+            </dl>
+            <p class="summary-total"><span>итого</span><strong>{{ total|rub }}</strong></p>
+        </div>
+    </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% if input.type == "textarea" %}
+    <textarea class="input input-textarea" name="{{ field }}" id="id_{{ field }}" rows="{{ input.rows }}"
+              placeholder="{{ input.placeholder }}"{% if input.max %} maxlength="{{ input.max }}"{% endif %}>{{ form.values[field] }}</textarea>
+{% else %}
+    <input class="input" type="{{ input.type or 'text' }}" name="{{ field }}" id="id_{{ field }}"
+           value="{{ form.values[field] }}" placeholder="{{ input.placeholder }}" autocomplete="{{ input.autocomplete }}"
+           {% if input.max %}maxlength="{{ input.max }}"{% endif %}{% if input.required %} required{% endif %}>
+{% endif %}

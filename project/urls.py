@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import include, path, re_path
 from django.views.static import serve
 
+from app.api import api_not_found, session_data
 from app.views import (
     AddressCreateView,
     AddressDeleteView,
@@ -28,26 +29,28 @@ from app.views import (
     payment_confirm,
 )
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
+handler404 = api_not_found
 
-    # ---------- Каталог ----------
+api_patterns = [
+    path("session/", session_data, name="session"),
+
+
     path("", ProductListView.as_view(), name="product-list"),
     path("p/<slug:slug>/", ProductDetailView.as_view(), name="product-detail"),
 
-    # ---------- Auth ----------
+
     path("login/", AppLoginView.as_view(), name="login"),
     path("logout/", logout_view, name="logout"),
     path("signup/", SignupView.as_view(), name="signup"),
 
-    # ---------- Корзина ----------
+
     path("cart/", cart_detail, name="cart-detail"),
     path("cart/add/", cart_add, name="cart-add-selected"),
     path("cart/add/<int:variant_id>/", cart_add, name="cart-add"),
     path("cart/update/<int:item_id>/", cart_update, name="cart-update"),
     path("cart/remove/<int:item_id>/", cart_remove, name="cart-remove"),
 
-    # ---------- Профиль ----------
+
     path("profile/", ProfileView.as_view(), name="profile"),
     path("profile/edit/", ProfileEditView.as_view(), name="profile-edit"),
     path("profile/addresses/", AddressListView.as_view(), name="profile-addresses"),
@@ -57,11 +60,16 @@ urlpatterns = [
     path("profile/orders/", OrderListView.as_view(), name="profile-orders"),
     path("profile/orders/<int:pk>/", OrderDetailView.as_view(), name="profile-order-detail"),
 
-    # ---------- Checkout ----------
+
     path("checkout/", CheckoutView.as_view(), name="checkout"),
     path("checkout/pay/<int:order_id>/", PaymentView.as_view(), name="checkout-payment"),
     path("checkout/pay/<int:order_id>/confirm/", payment_confirm, name="checkout-pay-confirm"),
     path("checkout/success/<int:order_id>/", OrderSuccessView.as_view(), name="checkout-success"),
+]
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/", include(api_patterns)),
 ]
 
 if settings.DEBUG:

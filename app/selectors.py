@@ -2,7 +2,7 @@ from django.db.models import F, Max, Min, Prefetch, Q, QuerySet, Sum
 
 from .models import Brand, Category, Product, ProductImage, ProductVariant
 
-# Порядок размеров в сетке; всё, чего тут нет, — после, по числу или по алфавиту
+
 _SIZE_RANK = {
     "XXS": 0, "XS": 1, "S": 2, "M": 3, "L": 4, "XL": 5,
     "XXL": 6, "2XL": 6, "XXXL": 7, "3XL": 7, "4XL": 8,
@@ -40,14 +40,14 @@ def product_list(
             stock_total=Sum("variants__stock", filter=active_variants),
         )
         .prefetch_related(
-            # Самый дешёвый вариант первым — из него берём старую цену
+
             Prefetch(
                 "variants",
                 queryset=ProductVariant.objects.filter(is_active=True)
                 .order_by("price", "id")
                 .only("id", "product_id", "size", "color", "price", "old_price", "stock"),
             ),
-            # Главное фото первым (ordering модели), второе — для смены при наведении
+
             Prefetch(
                 "images",
                 queryset=ProductImage.objects.only(
@@ -57,7 +57,7 @@ def product_list(
         )
     )
     if category_slug:
-        # Родительская категория показывает и товары дочерних
+
         qs = qs.filter(
             Q(category__slug=category_slug) | Q(category__parent__slug=category_slug)
         )

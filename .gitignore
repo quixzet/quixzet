@@ -1,23 +1,18 @@
-# ---------- Секреты и локальная база ----------
 .env
 db.sqlite3
 db.sqlite3-journal
 
-# ---------- Python ----------
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 
-# ---------- Django ----------
 /staticfiles/
 
-# ---------- Инструменты ----------
 node_modules/
 .idea/
 .vscode/
 
-# ---------- Система ----------
 .DS_Store
 Thumbs.db
 desktop.ini

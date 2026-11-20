@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from functools import wraps
+
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.db import transaction
 from django.db.models import Prefetch, Sum
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -19,10 +21,13 @@ from django.views.generic import (
     UpdateView,
 )
 
+from .api import (
+    address_data, card_data, cart_item_data, detail_data, form_data,
+    order_data, page_data, variant_data,
+)
 from .forms import (
     AddressForm,
     CheckoutForm,
-    LoginForm,
     ProfileForm,
     SignupForm,
 )
@@ -38,24 +43,69 @@ from .models import (
 )
 from .selectors import catalog_filters, product_list, size_key
 
-# Статусы, по которым деньги уже списаны
+
 SPENT_STATUSES = (Order.Status.PAID, Order.Status.SHIPPED, Order.Status.DELIVERED)
 
 
 def _safe_next(request):
-    """`next` из формы или адреса — только если он ведёт на наш же сайт."""
     url = request.POST.get("next") or request.GET.get("next")
-    if url and url_has_allowed_host_and_scheme(
-        url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    if url and url.startswith("/") and not url.startswith("//") and url_has_allowed_host_and_scheme(
+        url, allowed_hosts=set(), require_https=request.is_secure()
     ):
         return url
     return None
 
 
-# ---------- Каталог ----------
+def _login_redirect(request):
+    return redirect_to_login(request.get_full_path().removeprefix("/api"), reverse_lazy("login"))
 
-class ProductListView(ListView):
-    template_name = "app/product_list.html"
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return _login_redirect(request)
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
+class AccountRequiredMixin(LoginRequiredMixin):
+    def handle_no_permission(self):
+        return _login_redirect(self.request)
+
+
+class ApiViewMixin:
+    def render_to_response(self, context, **kwargs):
+        data = self.get_data(context)
+        form = context.get("form")
+        if form is not None:
+            data["form"] = form_data(form)
+        status = 422 if form is not None and form.errors else 200
+        return page_data(self.request, data, status=status)
+
+    def get_data(self, context):
+        return {}
+
+
+class ProductListView(ApiViewMixin, ListView):
+    def get_data(self, context):
+        page = context["page_obj"]
+        return {
+            "products": [card_data(product) for product in page],
+            "filters": context["filters"],
+            "is_filtered": context["is_filtered"],
+            "query_base": context["query_base"],
+            "pagination": {
+                "count": page.paginator.count,
+                "pages": list(page.paginator.page_range),
+                "number": page.number,
+                "start": page.start_index(),
+                "previous": page.previous_page_number() if page.has_previous() else None,
+                "next": page.next_page_number() if page.has_next() else None,
+            },
+        }
+
     context_object_name = "products"
     paginate_by = 24
 
@@ -72,15 +122,24 @@ class ProductListView(ListView):
         ctx["is_filtered"] = any(
             self.request.GET.get(key) for key in ("category", "brand", "gender")
         )
-        # Параметры фильтра без номера страницы — для ссылок пагинации
+
         query = self.request.GET.copy()
         query.pop("page", None)
         ctx["query_base"] = query.urlencode()
         return ctx
 
 
-class ProductDetailView(DetailView):
-    template_name = "app/product_detail.html"
+class ProductDetailView(ApiViewMixin, DetailView):
+    def get_data(self, context):
+        return {
+            "product": detail_data(context["product"]),
+            "slides_count": context["slides_count"],
+            "variants": [{**variant_data(v), "sku": v.sku} for v in context["variants"]],
+            "selected_variant_id": context["selected_variant"].id if context["selected_variant"] else None,
+            "colors": context["colors"],
+            "related": [card_data(product) for product in context["related"]],
+        }
+
     context_object_name = "product"
 
     def get_queryset(self):
@@ -98,7 +157,7 @@ class ProductDetailView(DetailView):
         product = self.object
         images = list(product.images.all())
         ctx["images"] = images
-        # Кадры карусели: 3D-модель (если есть) + фото; пустая галерея — один кадр-заглушка
+
         ctx["slides_count"] = max(1, len(images) + (1 if product.model_3d else 0))
         variants = sorted(product.variants.all(), key=size_key)
         ctx["variants"] = variants
@@ -111,10 +170,10 @@ class ProductDetailView(DetailView):
         return ctx
 
 
-# ---------- Auth ----------
+class SignupView(ApiViewMixin, FormView):
+    def get_data(self, context):
+        return {"next": context["next"]}
 
-class SignupView(FormView):
-    template_name = "app/signup.html"
     form_class = SignupForm
     success_url = reverse_lazy("product-list")
 
@@ -137,18 +196,21 @@ class SignupView(FormView):
         return super().form_valid(form)
 
 
-class AppLoginView(LoginView):
-    template_name = "app/login.html"
-    authentication_form = LoginForm
+class AppLoginView(ApiViewMixin, LoginView):
+    def get_redirect_url(self):
+        return _safe_next(self.request) or ""
+
+    def get_data(self, context):
+        return {"next": self.get_redirect_url()}
+
     redirect_authenticated_user = True
 
 
+@require_POST
 def logout_view(request):
     logout(request)
     return redirect("product-list")
 
-
-# ---------- Корзина ----------
 
 def _get_cart(user):
     cart, _ = Cart.objects.get_or_create(user=user)
@@ -165,9 +227,8 @@ def cart_detail(request):
         .order_by("-added_at")
     )
     total = sum(item.subtotal for item in items if item.is_selected)
-    return render(request, "cart/detail.html", {
-        "cart": cart,
-        "items": items,
+    return page_data(request, {
+        "items": [cart_item_data(item) for item in items],
         "total": total,
     })
 
@@ -175,7 +236,7 @@ def cart_detail(request):
 @login_required
 @require_POST
 def cart_add(request, variant_id=None):
-    # Вариант приходит либо в адресе, либо из формы выбора размера
+
     if variant_id is None:
         try:
             variant_id = int(request.POST.get("variant", ""))
@@ -236,11 +297,15 @@ def cart_remove(request, item_id):
     return redirect("cart-detail")
 
 
-# ---------- Профиль: обзор и данные ----------
+class ProfileView(ApiViewMixin, AccountRequiredMixin, TemplateView):
+    def get_data(self, context):
+        return {
+            "spent": context["spent"],
+            "orders_count": context["orders_count"],
+            "items_count": context["items_count"],
+            "recent_orders": [order_data(order) for order in context["recent_orders"]],
+        }
 
-class ProfileView(LoginRequiredMixin, TemplateView):
-    template_name = "account/dashboard.html"
-    login_url = "login"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -258,11 +323,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         return ctx
 
 
-class ProfileEditView(LoginRequiredMixin, UpdateView):
-    template_name = "account/profile_edit.html"
+class ProfileEditView(ApiViewMixin, AccountRequiredMixin, UpdateView):
     form_class = ProfileForm
     success_url = reverse_lazy("profile")
-    login_url = "login"
 
     def get_object(self, queryset=None):
         profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
@@ -273,28 +336,21 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-# ---------- Профиль: адреса ----------
+class AddressListView(ApiViewMixin, AccountRequiredMixin, ListView):
+    def get_data(self, context):
+        return {"addresses": [address_data(address) for address in context["addresses"]]}
 
-class AddressListView(LoginRequiredMixin, ListView):
-    template_name = "account/addresses.html"
     context_object_name = "addresses"
-    login_url = "login"
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
 
-class AddressCreateView(LoginRequiredMixin, CreateView):
-    template_name = "account/address_form.html"
+class AddressCreateView(ApiViewMixin, AccountRequiredMixin, CreateView):
     form_class = AddressForm
     success_url = reverse_lazy("profile-addresses")
-    login_url = "login"
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["is_edit"] = False
-        return ctx
-
+    @transaction.atomic
     def form_valid(self, form):
         form.instance.user = self.request.user
         if form.cleaned_data.get("is_default"):
@@ -302,41 +358,35 @@ class AddressCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class AddressUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = "account/address_form.html"
+class AddressUpdateView(ApiViewMixin, AccountRequiredMixin, UpdateView):
     form_class = AddressForm
     success_url = reverse_lazy("profile-addresses")
-    login_url = "login"
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["is_edit"] = True
-        return ctx
-
+    @transaction.atomic
     def form_valid(self, form):
         if form.cleaned_data.get("is_default"):
             Address.objects.filter(user=self.request.user).exclude(pk=self.object.pk).update(is_default=False)
         return super().form_valid(form)
 
 
-class AddressDeleteView(LoginRequiredMixin, DeleteView):
-    template_name = "account/address_confirm_delete.html"
+class AddressDeleteView(ApiViewMixin, AccountRequiredMixin, DeleteView):
+    def get_data(self, context):
+        return {"address": address_data(context["object"])}
+
     success_url = reverse_lazy("profile-addresses")
-    login_url = "login"
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
 
-# ---------- Профиль: заказы ----------
+class OrderListView(ApiViewMixin, AccountRequiredMixin, ListView):
+    def get_data(self, context):
+        return {"orders": [order_data(order) for order in context["orders"]]}
 
-class OrderListView(LoginRequiredMixin, ListView):
-    template_name = "account/orders.html"
     context_object_name = "orders"
-    login_url = "login"
 
     def get_queryset(self):
         return (
@@ -346,10 +396,11 @@ class OrderListView(LoginRequiredMixin, ListView):
         )
 
 
-class OrderDetailView(LoginRequiredMixin, DetailView):
-    template_name = "account/order_detail.html"
+class OrderDetailView(ApiViewMixin, AccountRequiredMixin, DetailView):
+    def get_data(self, context):
+        return {"order": order_data(context["order"], detail=True)}
+
     context_object_name = "order"
-    login_url = "login"
 
     def get_queryset(self):
         return self.request.user.orders.prefetch_related(
@@ -357,12 +408,15 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
         )
 
 
-# ---------- Checkout ----------
+class CheckoutView(ApiViewMixin, AccountRequiredMixin, FormView):
+    def get_data(self, context):
+        return {
+            "items": [cart_item_data(item) for item in context["items"]],
+            "total": context["total"],
+            "payment_methods": list(Order.PaymentMethod.choices),
+        }
 
-class CheckoutView(LoginRequiredMixin, FormView):
-    template_name = "checkout/form.html"
     form_class = CheckoutForm
-    login_url = "login"
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -376,7 +430,7 @@ class CheckoutView(LoginRequiredMixin, FormView):
         initial = super().get_initial()
         user = self.request.user
         profile = getattr(user, "profile", None)
-        # Основной адрес из профиля — чтобы не вводить заново
+
         address = user.addresses.first()
         initial["full_name"] = (
             user.get_full_name() or (address.full_name if address else "") or user.username
@@ -432,14 +486,15 @@ class CheckoutView(LoginRequiredMixin, FormView):
         return redirect("checkout-payment", order_id=order.id)
 
 
-class PaymentView(LoginRequiredMixin, TemplateView):
-    template_name = "checkout/payment.html"
-    login_url = "login"
+class PaymentView(ApiViewMixin, AccountRequiredMixin, TemplateView):
+    def get_data(self, context):
+        return {"order": order_data(context["order"], detail=True)}
+
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["order"] = get_object_or_404(
-            Order.objects.prefetch_related("items"),
+            Order.objects.prefetch_related("items__variant__product__images"),
             pk=self.kwargs["order_id"], user=self.request.user,
         )
         return ctx
@@ -450,15 +505,18 @@ class PaymentView(LoginRequiredMixin, TemplateView):
 def payment_confirm(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
     with transaction.atomic():
-        order.status = Order.Status.PAID
-        order.save(update_fields=["status"])
-        Cart.objects.filter(user=request.user).delete()
+        updated = Order.objects.filter(pk=order.pk, status=Order.Status.AWAITING_PAYMENT).update(
+            status=Order.Status.PAID,
+        )
+        if updated:
+            Cart.objects.filter(user=request.user).delete()
     return redirect("checkout-success", order_id=order.id)
 
 
-class OrderSuccessView(LoginRequiredMixin, TemplateView):
-    template_name = "checkout/success.html"
-    login_url = "login"
+class OrderSuccessView(ApiViewMixin, AccountRequiredMixin, TemplateView):
+    def get_data(self, context):
+        return {"order": order_data(context["order"])}
+
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

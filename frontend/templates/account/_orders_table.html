@@ -1,0 +1,14 @@
+<ul class="orders" role="list">
+    {% for order in orders %}
+        <li>
+            <a class="order-row" href="{{ url("profile-order-detail", order.id) }}">
+                <span class="order-no">{{ order.number }}</span>
+                <span class="order-date">{{ order.created_at|date("d.m.Y") }}</span>
+                <span class="order-qty">{% set n = order.item_count %}{{ n }} {{ n|plural("вещь,вещи,вещей") }}</span>
+                <span class="order-status"><span class="status status-{{ order.status }}">{{ order.status_label|lower }}</span></span>
+                <span class="order-total">{{ order.total|rub }}</span>
+                <span class="order-go">{% include "icons/arrow-right.svg" %}</span>
+            </a>
+        </li>
+    {% endfor %}
+</ul>

@@ -1,0 +1,41 @@
+{% extends "account/_layout.html" %}
+
+{% block title %}{% if is_edit %}Редактировать адрес{% else %}Новый адрес{% endif %} — Quixzet{% endblock %}
+
+{% block account %}
+<a href="{{ url("profile-addresses") }}" class="back-link">{% include "icons/arrow-left.svg" %} все адреса</a>
+
+<header class="acc-section-head">
+    <h1 class="acc-title">{% if is_edit %}редактировать адрес{% else %}новый адрес{% endif %}</h1>
+</header>
+
+<form method="post" class="form-stack form-narrow">
+    {% include "partials/_csrf.html" %}
+
+    {% if form.errors.__all__|length %}
+        <div class="alert" role="alert">{% for error in form.errors.__all__ %}<p>{{ error }}</p>{% endfor %}</div>
+    {% endif %}
+
+    <div class="form-row">
+        {% for locals in [{field: "full_name", label: "получатель"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+        {% for locals in [{field: "phone", label: "телефон"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+    </div>
+    <div class="form-row">
+        {% for locals in [{field: "country", label: "страна"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+        {% for locals in [{field: "city", label: "город"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+    </div>
+    {% for locals in [{field: "street", label: "улица, дом, квартира"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+    {% for locals in [{field: "postal_code", label: "индекс"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+
+    <label class="check">
+        <input type="checkbox" name="is_default" id="id_is_default"{% if form.values.is_default %} checked{% endif %}>
+        <span class="check-box" aria-hidden="true">{% include "icons/check.svg" %}</span>
+        <span>сделать основным — подставим при оформлении заказа</span>
+    </label>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-ink btn-lg">сохранить</button>
+        <a href="{{ url("profile-addresses") }}" class="link link-muted">отмена</a>
+    </div>
+</form>
+{% endblock %}
