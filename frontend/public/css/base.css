@@ -1570,7 +1570,8 @@
         white-space: nowrap;
     }
     .mv-expand { transition: background var(--d-fast), color var(--d-fast); }
-    .mv-expand:hover { background: #0a0a0a; color: #f2f2ef; }
+    .mv-expand:hover, .mv-expand[aria-pressed="true"] { background: #0a0a0a; color: #f2f2ef; }
+    .slide-3d .mv-expand { left: 14px; right: auto; }
 
 
     .viewer {
@@ -1587,7 +1588,7 @@
     }
     .viewer::backdrop { background: var(--scrim); }
     .viewer[open] { animation: fadeIn .3s ease; }
-    .viewer .mv { position: absolute; inset: 0; }
+    .slide-3d .mv, .viewer .mv { position: absolute; inset: 0; }
     .viewer-status { position: absolute; inset: 50% 0 auto; text-align: center; pointer-events: none; }
     .viewer-top {
         position: absolute;

@@ -179,6 +179,8 @@
         const track = root.querySelector('[data-slider-track]');
         const slides = Array.from(track.children);
         const out = root.querySelector('[data-slider-current]');
+        const modelButton = root.querySelector('[data-show-model]');
+        const modelIndex = slides.findIndex(function (slide) { return slide.classList.contains('slide-3d'); });
         if (slides.length < 2) return;
         let index = 0;
 
@@ -191,12 +193,17 @@
                 slide.setAttribute('aria-hidden', String(hidden));
             });
             if (out) out.textContent = String(index + 1).padStart(2, '0');
+            const showingModel = index === modelIndex;
+            if (modelButton) modelButton.setAttribute('aria-pressed', String(showingModel));
+            if (showingModel) loadModel(slides[index]);
         }
 
+        modelButton?.addEventListener('click', function () { go(index === modelIndex ? 0 : modelIndex); });
         root.querySelector('[data-slider-prev]').addEventListener('click', function () { go(index - 1); });
         root.querySelector('[data-slider-next]').addEventListener('click', function () { go(index + 1); });
 
         root.addEventListener('keydown', function (e) {
+            if (e.target.closest('model-viewer')) return;
             if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
             if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
         });
@@ -204,7 +211,7 @@
         let startX = null;
         let startY = 0;
         track.addEventListener('pointerdown', function (e) {
-            startX = e.target.closest('button') ? null : e.clientX;
+            startX = e.target.closest('model-viewer, button') ? null : e.clientX;
             startY = e.clientY;
         });
         track.addEventListener('pointerup', function (e) {
@@ -220,11 +227,11 @@
     }
 
 
-    async function loadModel(dialog) {
-        const model = dialog.querySelector('[data-mv]');
+    async function loadModel(container) {
+        const model = container.querySelector('[data-mv]');
         if (model.hasAttribute('src')) return;
 
-        const status = dialog.querySelector('[data-model-status]');
+        const status = container.querySelector('[data-model-status]');
         const bar = model.querySelector('.mv-progress');
         model.addEventListener('progress', function (event) {
             const progress = event.detail.totalProgress;
@@ -234,7 +241,7 @@
         model.addEventListener('load', function () { status.hidden = true; }, { once: true });
         const showError = function () { status.textContent = 'не удалось загрузить 3d-модель'; };
         model.addEventListener('error', showError, { once: true });
-        window.ModelViewerElement = { meshoptDecoderLocation: '/assets/js/vendor/meshopt_decoder.js' };
+        window.ModelViewerElement ??= { meshoptDecoderLocation: '/assets/js/vendor/meshopt_decoder.js' };
         model.setAttribute('src', model.dataset.src);
         try {
             await import('/assets/js/vendor/model-viewer.min.js');

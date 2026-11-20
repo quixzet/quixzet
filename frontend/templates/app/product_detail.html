@@ -19,7 +19,7 @@
 
 <article class="pdp">
 
-    <div class="pdp-gallery" data-slider role="region" aria-roledescription="карусель" aria-label="фото товара">
+    <div class="pdp-gallery" data-slider role="region" aria-roledescription="карусель" aria-label="галерея товара">
         <div class="slider-track" data-slider-track>
             {% for image in images %}
                 <figure class="slide" aria-roledescription="слайд" aria-label="фото {{ loop.index }} из {{ images|length }}">
@@ -29,12 +29,27 @@
             {% else %}
                 <figure class="slide is-empty"><span>фото скоро</span></figure>
             {% endfor %}
+            {% if product.model_3d %}
+                <figure class="slide slide-3d" id="gallery-3d" aria-roledescription="слайд" aria-label="3d-модель" aria-hidden="true" inert>
+                    <model-viewer class="mv" data-mv
+                        data-src="{{ product.model_3d.url }}" alt="3D-модель: {{ product.name }}"
+                        camera-controls disable-zoom touch-action="pan-y" interaction-prompt="none"
+                        camera-orbit="-25deg 78deg auto"
+                        min-camera-orbit="auto 35deg auto" max-camera-orbit="auto 100deg auto"
+                        environment-image="neutral" exposure="1.05"
+                        shadow-intensity="1" shadow-softness="0.9">
+                        <span class="mv-progress" slot="progress-bar"><span></span></span>
+                    </model-viewer>
+                    <p class="viewer-status" data-model-status role="status">загрузка 3d-модели…</p>
+                    <button type="button" class="mv-expand" data-open-dialog="viewer-3d">на весь экран</button>
+                </figure>
+            {% endif %}
         </div>
 
         {% if product.model_3d %}
-            <button type="button" class="mv-expand" data-open-dialog="viewer-3d">смотреть в 3d</button>
+            <button type="button" class="mv-expand" data-show-model aria-controls="gallery-3d" aria-pressed="false">смотреть в 3d</button>
         {% endif %}
-        {% set slides_count = images|length %}
+        {% set slides_count = (images|length or 1) + (1 if product.model_3d else 0) %}
         {% if slides_count > 1 %}
             <button type="button" class="slider-btn slider-prev" data-slider-prev aria-label="предыдущий кадр">{% include "icons/arrow-left.svg" %}</button>
             <button type="button" class="slider-btn slider-next" data-slider-next aria-label="следующий кадр">{% include "icons/arrow-right.svg" %}</button>
