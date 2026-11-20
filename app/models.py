@@ -5,10 +5,6 @@ from django.db import models
 from django.utils.text import slugify
 
 
-# ============================================================
-# БАЗОВЫЕ
-# ============================================================
-
 class TimeStampedModel(models.Model):
     """Абстрактная база: created/updated."""
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -17,10 +13,6 @@ class TimeStampedModel(models.Model):
     class Meta:
         abstract = True
 
-
-# ============================================================
-# КАТАЛОГ
-# ============================================================
 
 class Category(TimeStampedModel):
     name = models.CharField(max_length=128)
@@ -166,10 +158,6 @@ class ProductImage(TimeStampedModel):
         return f"Image for {self.product_id}"
 
 
-# ============================================================
-# КОРЗИНА
-# ============================================================
-
 class Cart(models.Model):
     user = models.OneToOneField(
         "auth.User", on_delete=models.CASCADE, related_name="cart",
@@ -219,10 +207,6 @@ class CartItem(models.Model):
         return self.variant.price * self.quantity
 
 
-# ============================================================
-# ПРОФИЛЬ
-# ============================================================
-
 def avatar_upload_path(instance, filename):
     ext = filename.rsplit(".", 1)[-1].lower()
     return f"avatars/{instance.user_id}/avatar.{ext}"
@@ -253,10 +237,6 @@ class UserProfile(models.Model):
         return None
 
 
-# ============================================================
-# АДРЕСА
-# ============================================================
-
 class Address(models.Model):
     user = models.ForeignKey(
         "auth.User", on_delete=models.CASCADE, related_name="addresses"
@@ -278,10 +258,6 @@ class Address(models.Model):
     def __str__(self) -> str:
         return f"{self.city}, {self.street}"
 
-
-# ============================================================
-# ЗАКАЗЫ
-# ============================================================
 
 class Order(models.Model):
     class Status(models.TextChoices):

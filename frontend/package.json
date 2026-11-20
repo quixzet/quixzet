@@ -1,0 +1,11 @@
+{
+  "name": "quixzet-frontend",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {"start": "node --env-file-if-exists=.env server.js"},
+  "dependencies": {
+    "express": "^5.1.0",
+    "nunjucks": "^3.2.4"
+  }
+}

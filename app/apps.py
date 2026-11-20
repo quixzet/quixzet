@@ -7,4 +7,4 @@ class AppConfig(AppConfig):
     verbose_name = "Quixzet"
 
     def ready(self):
-        from . import signals  # noqa: F401
+        from . import signals

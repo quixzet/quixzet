@@ -1,0 +1,38 @@
+{% extends "app/base.html" %}
+
+{% block title %}Регистрация — Quixzet{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+{% block auth_modals %}{% endblock %}
+
+{% block content %}
+<div class="auth">
+    <div class="auth-visual" aria-hidden="true">
+        <img src="/assets/images/banner-m.webp" alt="" width="647" height="809">
+        <p class="auth-visual-text">без лишнего.<br>без компромиссов.</p>
+    </div>
+
+    <div class="auth-panel">
+        <p class="eyebrow">quixzet / новый аккаунт</p>
+        <h1 class="auth-title">регистрация</h1>
+
+        {% if form.errors.__all__|length %}
+            <div class="alert" role="alert">{% for error in form.errors.__all__ %}<p>{{ error }}</p>{% endfor %}</div>
+        {% endif %}
+
+        <form method="post" class="form-stack">
+            {% include "partials/_csrf.html" %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% for locals in [{field: "username", label: "логин"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+            {% for locals in [{field: "email", label: "почта"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+            {% for locals in [{field: "password1", label: "пароль", password: true, hint: "минимум 8 символов, не только цифры"}] %}{% set field = locals.field %}{% set label = locals.label %}{% set password = locals.password %}{% set hint = locals.hint %}{% include "partials/_field.html" %}{% endfor %}
+            {% for locals in [{field: "password2", label: "пароль ещё раз"}] %}{% set field = locals.field %}{% set label = locals.label %}{% include "partials/_field.html" %}{% endfor %}
+            <button type="submit" class="btn btn-ink btn-xl btn-block">создать аккаунт</button>
+        </form>
+
+        <p class="auth-switch">
+            уже есть аккаунт?
+            <a class="link" href="{{ url("login") }}{% if next %}?next={{ next|urlencode }}{% endif %}">войти</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

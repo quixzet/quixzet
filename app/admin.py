@@ -17,8 +17,6 @@ from .models import (
 )
 
 
-# ---------- Каталог ----------
-
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "parent", "is_active")
@@ -60,8 +58,6 @@ class ProductVariantAdmin(admin.ModelAdmin):
 admin.site.register(Brand)
 
 
-# ---------- Профиль / Адреса ----------
-
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "phone", "updated_at")
@@ -75,8 +71,6 @@ class AddressAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "city", "street")
     list_select_related = ("user",)
 
-
-# ---------- Заказы ----------
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -94,8 +88,6 @@ class OrderAdmin(admin.ModelAdmin):
     list_select_related = ("user",)
     inlines = [OrderItemInline]
 
-
-# ---------- Корзина ----------
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):

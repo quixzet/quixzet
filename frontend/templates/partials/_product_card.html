@@ -1,0 +1,51 @@
+{% set img = product.images[0] %}{% set img2 = product.images[1] %}{% set cheap = product.cheapest %}
+<article class="card{% if not product.stock_total %} is-soldout{% endif %}" data-reveal data-cursor="смотреть">
+    <div class="card-media">
+        {% if img %}
+            <img class="card-img" src="{{ img.image.url }}" alt="" loading="lazy" decoding="async">
+            {% if img2 %}<img class="card-img card-img-alt" src="{{ img2.image.url }}" alt="" loading="lazy" decoding="async">{% endif %}
+        {% else %}
+            <span class="card-placeholder">фото скоро</span>
+        {% endif %}
+
+        <span class="card-index">{{ index|pad }}</span>
+        <span class="card-tags">
+            {% if product.has_model %}<span class="tag tag-ink">3d</span>{% endif %}
+            {% if not product.stock_total %}
+                <span class="tag tag-ink">sold out</span>
+            {% else %}
+                {% set pct = cheap.price|discount(cheap.old_price) %}
+                    {% if pct %}<span class="tag tag-signal">−{{ pct }}%</span>{% endif %}
+
+            {% endif %}
+        </span>
+
+        {% if product.variants %}
+            <span class="card-sizes" aria-hidden="true">
+                {% for v in product.variants %}
+                    <span{% if not v.stock %} class="is-out"{% endif %}>{{ v.size }}</span>
+                {% endfor %}
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="card-body">
+        <h3 class="card-title">
+            <a class="card-link" href="{{ url("product-detail", product.slug) }}">{{ product.name }}</a>
+        </h3>
+        <p class="card-meta">
+            {% if product.brand %}{{ product.brand.name|lower }}{% endif %}
+            <span class="card-sizes-inline">{% for v in product.variants %}{% if v.stock %}{{ v.size }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>
+        </p>
+        <p class="card-price">
+            {% if product.price_min == null %}
+                нет в продаже
+            {% else %}
+                <span>{% if product.price_min != product.price_max %}от {% endif %}{{ product.price_min|rub }}</span>
+                {% if cheap.old_price and cheap.old_price|number > cheap.price|number %}
+                    <s class="price-old"><span class="sr-only">было </span>{{ cheap.old_price|rub }}</s>
+                {% endif %}
+            {% endif %}
+        </p>
+    </div>
+</article>

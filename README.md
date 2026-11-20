@@ -1,79 +1,37 @@
 # QUIXZET
 
-Магазин одежды на Django. Без лишнего. Без компромиссов.
+Магазин одежды с каталогом, фильтрами, корзиной, личным кабинетом и 3D-просмотром товаров.
 
-Монохромный бруталистский дизайн, каталог с фильтрами, корзина, оформление и оплата заказа (имитация), личный кабинет с заказами и адресами, 3D-просмотр товаров с AR на телефоне.
+- Django на Python 3.14 обслуживает JSON API на `/api/`, админку на `/admin/` и загруженные медиафайлы на `/media/`. По умолчанию используется SQLite. Переменная `DATABASE_URL` позволяет подключить PostgreSQL.
+- Node.js 22+ в `frontend/` самостоятельно отдаёт страницы, стили и скрипты. Express обращается к Django через `BACKEND_URL` и передаёт браузеру сессионную cookie Django. Фронтенд можно запускать на другом сервере, если он может подключиться к API.
 
-## Стек
+## Локальный запуск
 
-- Python 3.14, Django 6.1, django-environ, Pillow
-- SQLite по умолчанию, PostgreSQL — через `DATABASE_URL`
-- Вёрстка — шаблоны Django + свой CSS и JS без фреймворков
-- 3D — [`<model-viewer>`](https://modelviewer.dev) с декодером meshopt, оба файла лежат в `app/static/js/vendor/`
+В корне репозитория создайте виртуальное окружение, установите зависимости и скопируйте `.env.example` в `.env`. Задайте случайный `DJANGO_SECRET_KEY`.
 
-## Запуск
-
-```powershell
+```sh
 python -m venv .venv
-.venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
-
-copy .env.example .env    # и вписать свой DJANGO_SECRET_KEY
+cp .env.example .env
 python manage.py migrate
+python manage.py loaddata catalog.json
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Сайт — http://127.0.0.1:8000, админка — http://127.0.0.1:8000/admin.
+В PowerShell активируйте окружение командой `.venv\Scripts\Activate.ps1` и скопируйте файл командой `Copy-Item .env.example .env`.
 
-Сгенерировать секретный ключ:
+В другом терминале из корня репозитория:
 
-```powershell
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```sh
+cd frontend
+npm ci
+npm start
 ```
 
-## Товары и фото
+Витрина доступна по адресу http://127.0.0.1:3000, админка — http://127.0.0.1:8000/admin/, каталог API — http://127.0.0.1:8000/api/.
 
-Товары, варианты (размер / цвет / цена / остаток) и фото добавляются в админке.
-Фото лучше загружать от 1200–1600 px по высоте — на больших экранах маленькие выглядят мыльно.
+Для других адресов настройте `frontend/.env`, укажите хост Django в `ALLOWED_HOSTS` и добавьте публичный origin витрины к `CSRF_TRUSTED_ORIGINS`. В рабочем окружении используйте HTTPS и `DEBUG=False`. Если Django стоит за прокси, включайте `TRUST_PROXY_SSL_HEADER` только когда прокси подставляет свой `X-Forwarded-Proto` и удаляет одноимённый заголовок клиента. Статику админки собирает `python manage.py collectstatic --noinput`. Для медиа настройте раздачу `/media/` рядом с Django либо задайте `SERVE_MEDIA=True`.
 
-## 3D-модели
-
-У товара есть поле «3D-модель» (`.glb`). Сырые модели из сканов и нейросетей весят десятки мегабайт — перед загрузкой их стоит сжать:
-
-```powershell
-npx @gltf-transform/cli optimize model.glb model-web.glb --compress meshopt --simplify-ratio 0.08 --simplify-error 0.002 --texture-compress false
-```
-
-В репозиторий попадают только сжатые модели (`*-web.glb`), исходники — нет (см. `.gitignore`).
-
-## Структура
-
-```
-app/
-  models.py, views.py, selectors.py   каталог, корзина, заказы, профиль
-  templatetags/qx.py                  цены «29 990 ₽», склонения, скидки
-  context_processors.py               счётчик корзины в шапке
-  templates/                          страницы и партиалы
-  static/css/base.css                 все стили (слои, токены, тёмная тема)
-  static/js/base.js                   интерактив: карусель, модалки, бегущие строки
-project/                              настройки Django
-media/                                фото товаров и 3D-модели
-```
-
-## Деплой (Render + Cloudflare)
-
-Cloudflare Pages умеет только статику, Django там не запустится. Поэтому сайт работает на [Render](https://render.com), а Cloudflare держит домен и CDN.
-
-1. Render → **New → Blueprint** → репозиторий `quixzet/quixzet`. Render прочитает `render.yaml` и создаст веб-сервис и PostgreSQL. Дальше каждый `git push` в `main` деплоится сам.
-2. Админ: в Render → сервис → **Shell** → `python manage.py createsuperuser`.
-3. Перенести товары из локальной SQLite:
-   ```powershell
-   python manage.py dumpdata app.Category app.Brand app.Product app.ProductVariant app.ProductImage --indent 2 -o catalog.json
-   ```
-   закоммитить `catalog.json`, затем в Shell на Render: `python manage.py loaddata catalog.json`.
-4. Свой домен: Render → Settings → **Custom Domains** → добавить `quixzet.ru`. В Cloudflare DNS создать `CNAME` на `quixzet.onrender.com`, SSL/TLS режим **Full**. В Render добавить переменные `ALLOWED_HOSTS=quixzet.ru` и `CSRF_TRUSTED_ORIGINS=https://quixzet.ru`.
-
-Сборка — `build.sh` (зависимости, `collectstatic`, `migrate`), запуск — `gunicorn`. Статику раздаёт WhiteNoise.
-
-На бесплатном тарифе Render диск не сохраняется между деплоями: картинки из репозитория (`media/`) на месте, а загруженные через админку пропадут при следующем деплое. Для постоянных загрузок нужен платный диск Render или Cloudflare R2.
+Товары, размеры, остатки и фотографии редактируются в админке. Для 3D-просмотра загрузите сжатый файл `.glb`. Оплата в магазине имитируется.
